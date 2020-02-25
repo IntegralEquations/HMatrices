@@ -1,0 +1,17 @@
+name = "HierarchicalMatrices"
+uuid = "ec0ae8b6-216d-467d-a575-4724207060ce"
+authors = ["Luiz M. Faria <maltezfaria@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+GeometryTypes = "4d00f742-c7ba-57c2-abde-4428a4b178cb"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+
+[compat]
+julia = "^1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
