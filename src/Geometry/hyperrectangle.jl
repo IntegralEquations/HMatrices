@@ -1,7 +1,7 @@
 """
     HyperRectangle{N,T}
-Structure representing a hyperrectangle in `N` dimension with datatype `T`,
-specified by a `low_corner` and a `high_corner`
+
+Hyperrectangle in `N` dimensions given by `low_corner::Point{N,T}` and `high_corner::Point{N,T}`
 """
 struct HyperRectangle{N,T}
     low_corner::Point{N,T}
@@ -19,6 +19,7 @@ dimension(h::HyperRectangle{N}) where {N} = N
 
 """
     split(rec::HyperRectangle,axis::Int,place)
+
 Split a hyperrectangle in two along the `axis` direction at the  position `place`. Returns the two resulting hyper-rectangles.
 """
 function split(rec::HyperRectangle,axis,place)
@@ -60,14 +61,11 @@ function distance(rec1::HyperRectangle{N},rec2::HyperRectangle{N}) where {N}
     return sqrt(d2)
 end
 
-centroid(x) = x
-
-function bounding_box(data::Vector{<:Point})
+function bounding_box(data)
     pt_min = minimum(data)
     pt_max = maximum(data)
     return HyperRectangle(pt_min,pt_max)
 end
-bounding_box(data::Vector) = bounding_box(centroid.(data))
 
 center(rec::HyperRectangle) = (rec.low_corner + rec.high_corner) ./ 2
 radius(rec::HyperRectangle) = norm(rec.high_corner-rec.low_corner) ./ 2
