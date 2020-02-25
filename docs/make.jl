@@ -6,12 +6,17 @@ makedocs(
     format = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
     authors = "Luiz M. Faria",
     sitename = "HierarchicalMatrices.jl",
-    pages = Any["index.md"]
+    pages = Any["Home" => "index.md"
+                "Modules" => "modules.md" ]
     # strict = true,
     # clean = true,
     # checkdocs = :exports,
 )
 
 deploydocs(
-    repo = "github.com/maltezfaria/HierarchicalMatrices.jl.git",
+    repo = "github.com/maltezfaria/HierarchicalMatrices.jl.git",## Geometry
+```@autodocs
+Modules = [HierarchicalMatrices.Geometry]
+Order   = [:module, :function, :type]
+```
 )
