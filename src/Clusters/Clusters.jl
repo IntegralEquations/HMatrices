@@ -16,7 +16,7 @@ export ClusterTree, BlockClusterTree
 
 include("clustertree.jl")
 include("splitter.jl")
-# include("blockclustertree.jl")
-# include("admissibilityfunction.jl")
+include("blockclustertree.jl")
+include("admissibility.jl")
 
 end#module
