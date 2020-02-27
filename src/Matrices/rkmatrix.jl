@@ -95,5 +95,7 @@ end
 Base.rand(::Type{RkMatrix{T}},m::Int,n::Int,r::Int) where {T} = RkMatrix(rand(T,m,r),rand(T,n,r)) #useful for testing
 Base.rand(::Type{RkMatrix},m::Int,n::Int,r::Int) = rand(RkMatrix{Float64},m,n,r)
 
+Base.copy(R::RkMatrix) = RkMatrix(copy(R.A),copy(R.B))
+
 num_elements(R::RkMatrix)        = size(R.A,2)*(sum(size(R)))
 compression_rate(R::RkMatrix)    = num_elements(R) / prod(size(R))

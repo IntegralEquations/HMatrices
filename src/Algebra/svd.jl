@@ -21,9 +21,9 @@ end
 
 function LinearAlgebra.svd!(M::RkMatrix)
     r      = rank(M)
-    QA, RA = qr!(M.A)
-    QB, RB = qr!(M.B)
-    F      = svd!(RA*adjoint(RB))
+    QA, RA = LinearAlgebra.qr!(M.A)
+    QB, RB = LinearAlgebra.qr!(M.B)
+    F      = LinearAlgebra.svd!(RA*adjoint(RB))
     U      = QA*F.U
     Vt     = F.Vt*adjoint(QB)
     return LinearAlgebra.SVD(U,F.S,Vt) #create the SVD structure
