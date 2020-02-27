@@ -20,9 +20,9 @@ should_split(node::ClusterTree,splitter::AbstractSplitter) = length(node) > spli
 
 function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
     perm                = cluster.perm
-    rec                 = cluster.bounding_box
+    rec                 = bounding_box(cluster)
     index_range         = cluster.index_range
-    data                = cluster.data
+    data                = getdata(cluster)
     left_rec, right_rec = Geometry.split(rec, dir, pos)
     perm_idxs           = Vector{Int}(undef,length(cluster))
     npts_left           = 0
@@ -52,20 +52,20 @@ function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
 end
 
 function split!(cluster::ClusterTree,splitter::GeometricSplitter)
-    rec  = cluster.bounding_box
+    rec  = bounding_box(cluster)
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     return _binary_split(cluster, imax, rec.low_corner[imax]+wmax/2, false)
 end
 
 function split!(cluster::ClusterTree,splitter::GeometricMinimalSplitter)
-    rec  = cluster.bounding_box
+    rec  = bounding_box(cluster)
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     return _binary_split(cluster, imax, rec.low_corner[imax]+wmax/2)
 end
 
 function split!(cluster::ClusterTree,splitter::CardinalitySplitter)
-    data                = cluster.data
-    rec                 = cluster.bounding_box
+    data                = getdata(cluster)
+    rec                 = bounding_box(cluster)
     index_range         = cluster.index_range
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     med                 = Statistics.median(data[n][imax] for n in index_range) # the median along largest axis `imax`
@@ -75,7 +75,7 @@ end
 function split!(cluster::ClusterTree,splitter::NestedDissectionSplitter)
     #TODO
     # clt1, clt2 = split(cluster,GeometricMinimalSplitter(splitter.nmax))
-    # S          = getconnectivity(cluster.data)
+    # S          = getconnectivity(getdata(cluster))
     # perm       = cluster.perm
     # tmp        = Int[]
     # for i in clt1.index_range

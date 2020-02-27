@@ -12,29 +12,33 @@ mutable struct ClusterTree{T,S}
     parent::Maybe{ClusterTree{T,S}}
 end
 
-AbstractTrees.children(clt::ClusterTree) = getchildren(clt)
+AbstractTrees.children(clt::ClusterTree) = getchildren(clt) #interface
 
 getchildren(clt::ClusterTree) = clt.children
 getparent(clt::ClusterTree)   = clt.parent
 getdata(clt::ClusterTree)     = clt.data
+getperm(clt::ClusterTree)     = clt.perm
 setchildren!(clt::ClusterTree,children) = (clt.children = children)
 setparent!(clt::ClusterTree,parent)     = (clt.parent   = parent)
 setdata!(clt::ClusterTree,data)     = (clt.data = data)
 
-isleaf(clt::ClusterTree) = children(clt)  === ()
+isleaf(clt::ClusterTree) = getchildren(clt)  === ()
 isroot(clt::ClusterTree) = getparent(clt) === ()
 
 diameter(node::ClusterTree)                         = Geometry.diameter(node.bounding_box)
-distance(node1::ClusterTree,node2::ClusterTree)     = distance(node1.bounding_box, node2.bounding_box)
+distance(node1::ClusterTree,node2::ClusterTree)     = Geometry.distance(node1.bounding_box, node2.bounding_box)
+
+bounding_box(clt::ClusterTree) = clt.bounding_box
 
 Base.length(node::ClusterTree) = length(node.index_range)
+Base.range(node::ClusterTree)  = node.index_range
 
 """
     ClusterTree(data,splitter)
 
 Construct a `ClusterTree` from the  given `data`.
 """
-function ClusterTree(data, splitter; reorder=true)
+function ClusterTree(data, splitter=CardinalitySplitter(); reorder=true)
     if reorder
         @info "Input data modified upon construction of ClusterTree"
     else
