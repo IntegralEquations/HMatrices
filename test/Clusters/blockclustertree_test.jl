@@ -1,8 +1,5 @@
 using SafeTestsets
 
-using HierarchicalMatrices
-using Test
-
 @safetestset "BlockClusterTree" begin
     using HierarchicalMatrices.Clusters
     using HierarchicalMatrices.Clusters: isadmissible, AdmissibilityStandard

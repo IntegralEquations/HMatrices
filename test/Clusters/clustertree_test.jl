@@ -1,8 +1,5 @@
 using SafeTestsets
 
-using HierarchicalMatrices
-using Test
-
 @safetestset "ClusterTree" begin
     using HierarchicalMatrices.Clusters
     using HierarchicalMatrices.Clusters: isroot, isleaf
