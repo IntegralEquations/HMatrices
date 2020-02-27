@@ -6,6 +6,8 @@ Module implementing various cluster trees and block cluster trees to be used in 
 module Clusters
 
 import RecipesBase
+import AbstractTrees
+import Statistics
 
 using ..HierarchicalMatrices: Maybe
 using ..Geometry
