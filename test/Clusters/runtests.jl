@@ -1,3 +1,3 @@
 @testset "Clusters" begin
-    include("")
+    include("clustertree_test.jl")
 end
