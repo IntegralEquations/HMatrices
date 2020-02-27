@@ -1,6 +1,7 @@
 module Geometry
 
-using RecipesBase 
+import LinearAlgebra
+import RecipesBase
 
 export Point, HyperRectangle
 
