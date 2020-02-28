@@ -13,7 +13,7 @@ struct RkMatrix{T} <: AbstractMatrix{T}
         m,r = size(A)
         n  = size(B,1)
         if  r*(m+n) >= m*n
-            @debug "Inefficient RkMatrix: size(A)=$(size(A)), size(Bt)=$(size(Bt))"
+            @debug "Inefficient RkMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
         end
         new{T}(A,B)
     end
@@ -33,7 +33,7 @@ function rkmatrix!(F::LinearAlgebra.SVD)
     return RkMatrix(A,B)
 end
 
-function rkmatrix(A::Vector{V1},B::Vector{V2}) where {V1<: AbstractVector, V2 <: AbstractVector}
+function RkMatrix(A::Vector{V1},B::Vector{V2}) where {V1<: AbstractVector, V2 <: AbstractVector}
     T1   = eltype(V1)
     T2   = eltype(V2)
     T   = promote_type(T1,T2)
@@ -96,6 +96,9 @@ Base.rand(::Type{RkMatrix{T}},m::Int,n::Int,r::Int) where {T} = RkMatrix(rand(T,
 Base.rand(::Type{RkMatrix},m::Int,n::Int,r::Int) = rand(RkMatrix{Float64},m,n,r)
 
 Base.copy(R::RkMatrix) = RkMatrix(copy(R.A),copy(R.B))
+
+Matrix(R::RkMatrix) = R.A*R.Bt
+
 
 num_elements(R::RkMatrix)        = size(R.A,2)*(sum(size(R)))
 compression_rate(R::RkMatrix)    = num_elements(R) / prod(size(R))

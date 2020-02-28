@@ -1,6 +1,6 @@
 using SafeTestsets
 
-@safetestset "RkMatrix" begin
+@safetestset "svd" begin
     using HierarchicalMatrices.Matrices
     using LinearAlgebra: svd, svd!
     m,n,r = 20, 10, 5
