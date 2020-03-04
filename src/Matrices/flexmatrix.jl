@@ -38,6 +38,12 @@ function Base.Matrix(F::FlexMatrix)
     return M
 end
 
+function pushcol!(F::FlexMatrix,vs...)
+    # TODO: assert hat the vectors vs being added are of the correct length
+    push!(F.data,vs...)
+    return F
+end
+
 function _ismatrix(A::Vector{<:Vector})
     isempty(A) && return true
     n = length(first(A))
