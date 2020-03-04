@@ -3,7 +3,7 @@ using SafeTestsets
 @safetestset "RkMatrix" begin
     using HierarchicalMatrices.Matrices
     using HierarchicalMatrices.Matrices: num_elements, compression_rate
-    @testset "2d binary clusters" begin
+    @testset "Simple ops" begin
         let
             m,n,r = 10,20,5
             A = rand(m,r)
