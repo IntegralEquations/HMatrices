@@ -12,8 +12,9 @@ import LinearAlgebra
 using ..HierarchicalMatrices: Maybe
 using ..HierarchicalMatrices.Clusters
 
-export RkMatrix, HMatrix
+export FlexMatrix, RkMatrix, HMatrix
 
+include("flexmatrix.jl")
 include("rkmatrix.jl")
 
 end#module
