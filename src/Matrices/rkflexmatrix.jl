@@ -1,5 +1,5 @@
 """
-    RkMatrixFlex{T}
+    RkFlexMatrix{T}
 
 Similar to [`RkMatrix`](@ref), but internally stores the matrices `A` and `B` as `FlexMatrix{T}`.
 
@@ -19,13 +19,13 @@ struct RkFlexMatrix{T} <: AbstractMatrix{T}
     end
 end
 RkFlexMatrix(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number} = RkFlexMatrix{T}(A,B)
+RkFlexMatrix(A::Vector{T},B::Vector{T}) where {T<:Vector}  = RkFlexMatrix(FlexMatrix(A),FlexMatrix(B))
 
 RkFlexMatrix{T}(undef,m,n,r) where {T} = RkFlexMatrix(FlexMatrix{T}(undef,m,r),FlexMatrix{T}(undef,n,r))
 
 Base.size(rmat::RkFlexMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
 Base.isapprox(rmat::RkFlexMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
 Base.getindex(rmat::RkFlexMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
-Base.getindex(rmat::RkFlexMatrix,I,J)                                = RkFlexMatrix(rmat.A[I,:],rmat.B[J,:])
 
 function Base.getproperty(R::RkFlexMatrix,s::Symbol)
     if  s == :Bt
