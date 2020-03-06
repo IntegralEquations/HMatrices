@@ -13,7 +13,6 @@ using SafeTestsets
         atol = 1e-5
         aca = ACA(atol=atol)
         R = compress(M,irange,jrange,aca)
-        @info  rank(R)
         norm(Matrix(R) - M)
         @test norm(Matrix(R) - M) < atol
         rtol = 1e-5
@@ -30,7 +29,6 @@ using SafeTestsets
         atol = 1e-5
         aca = PartialACA(atol=atol)
         R = compress(M,irange,jrange,aca)
-        @info  rank(R)
         @test norm(Matrix(R) - M) < atol
         rtol = 1e-5
         aca = ACA(rtol=rtol)
