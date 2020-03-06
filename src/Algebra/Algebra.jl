@@ -13,6 +13,5 @@ import LinearAlgebra
 include("basics.jl")
 include("svd.jl")
 include("compressor.jl")
-include("aca.jl")
 
 end
