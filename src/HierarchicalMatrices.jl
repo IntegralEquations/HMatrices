@@ -1,5 +1,9 @@
 module HierarchicalMatrices
 
+import LinearAlgebra
+
+export HMatrix
+
 include("Interfaces.jl")
 include("utils.jl")
 include("Geometry/Geometry.jl")

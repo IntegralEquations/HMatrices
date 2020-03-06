@@ -36,7 +36,7 @@ function _aca_full!(M, atol, rmax, rtol, norm)
             a = M[:,j]
             b = conj(M[i,:])
             LinearAlgebra.rdiv!(a,δ)
-            Matrices.pushcross!(R,a,b)
+            pushcross!(R,a,b)
             LinearAlgebra.axpy!(-1,a*adjoint(b),M) # M <-- M - col*row'
             er = norm(M) # exact error
         end
@@ -81,7 +81,7 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
             LinearAlgebra.rdiv!(b,δ) # b <-- b/δ
             J[j] = false
             a    = isempty(R) ? K[:,j] : K[:,j] - R[:,j] # compute a column
-            Matrices.pushcross!(R,a,b)
+            pushcross!(R,a,b)
             er       = norm(a)*norm(b) # approximate error
             est_norm = norm(R)
             i        = _nextrow(a,I)
@@ -102,7 +102,7 @@ function _nextcol(col,J)
     end
     return out
 end
-_nextrow(row,I) = nextcol(row,I)
+_nextrow(row,I) = _nextcol(row,I)
 
 function LinearAlgebra.norm(R::RkFlexMatrix,p::Int=2)
     #TODO: improve this very rough estimation of the norm

@@ -1,8 +1,8 @@
 using SafeTestsets
 
 @safetestset "Compressor" begin
-    using HierarchicalMatrices.Matrices
-    using HierarchicalMatrices.Algebra: ACA, PartialACA,compress
+    using HierarchicalMatrices
+    using HierarchicalMatrices: ACA, PartialACA,compress
     using LinearAlgebra: norm, Diagonal, rank
     T = ComplexF64
     m,n,r = 100,100,100
