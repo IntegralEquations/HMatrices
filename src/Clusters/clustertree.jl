@@ -25,8 +25,8 @@ setdata!(clt::ClusterTree,data)     = (clt.data = data)
 isleaf(clt::ClusterTree) = getchildren(clt)  === ()
 isroot(clt::ClusterTree) = getparent(clt) === ()
 
-diameter(node::ClusterTree)                         = Geometry.diameter(node.bounding_box)
-distance(node1::ClusterTree,node2::ClusterTree)     = Geometry.distance(node1.bounding_box, node2.bounding_box)
+diameter(node::ClusterTree)                         = diameter(node.bounding_box)
+distance(node1::ClusterTree,node2::ClusterTree)     = distance(node1.bounding_box, node2.bounding_box)
 
 bounding_box(clt::ClusterTree) = clt.bounding_box
 
@@ -47,7 +47,7 @@ function ClusterTree(data, splitter=CardinalitySplitter(); reorder=true)
     n_el    = length(data)
     indices   = collect(1:n_el)
     #build the root, then recurse
-    bbox    = Geometry.bounding_box(data)
+    bbox    = bounding_box(data)
     root    = ClusterTree(data,indices,bbox,1:n_el,(),())
     _build_cluster_tree!(root,splitter)
     return root

@@ -23,7 +23,7 @@ function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
     rec                 = bounding_box(cluster)
     index_range         = cluster.index_range
     data                = getdata(cluster)
-    left_rec, right_rec = Geometry.split(rec, dir, pos)
+    left_rec, right_rec = split(rec, dir, pos)
     perm_idxs           = Vector{Int}(undef,length(cluster))
     npts_left           = 0
     npts_right          = 0
@@ -43,8 +43,8 @@ function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
     left_index_range      = index_range.start:(index_range.start)+npts_left-1
     right_index_range     = (index_range.start+npts_left):index_range.stop
     if shrink
-        left_rec   = Geometry.bounding_box(data[left_index_range])
-        right_rec  = Geometry.bounding_box(data[right_index_range])
+        left_rec   = bounding_box(data[left_index_range])
+        right_rec  = bounding_box(data[right_index_range])
     end
     clt1 = ClusterTree(data, perm, left_rec,  left_index_range,  (), cluster)
     clt2 = ClusterTree(data, perm, right_rec, right_index_range, (), cluster)

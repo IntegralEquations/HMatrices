@@ -9,8 +9,8 @@ import RecipesBase
 import AbstractTrees
 import Statistics
 
-using ..HierarchicalMatrices: Maybe
-using ..Geometry
+import ..Interfaces: bounding_box, split
+using  ..HierarchicalMatrices: Maybe
 
 export ClusterTree, BlockClusterTree
 

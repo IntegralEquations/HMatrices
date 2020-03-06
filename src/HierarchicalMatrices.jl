@@ -1,5 +1,6 @@
 module HierarchicalMatrices
 
+include("Interfaces.jl")
 include("utils.jl")
 include("Geometry/Geometry.jl")
 include("Clusters/Clusters.jl")
