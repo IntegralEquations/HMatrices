@@ -13,5 +13,12 @@ function getchildren end
 function getparent end
 function setchildren end
 function setparent end
+function isleaf end
+function isroot end
+
+# Cluster <--> HMatrices
+function rowrange end
+function colrange end
+function isadmissible end
 
 end#module

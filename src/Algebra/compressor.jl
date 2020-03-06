@@ -1,6 +1,6 @@
 abstract type AbstractCompressor end
 
-compress(K,block,compressor::AbstractCompressor) = compress(K,rowrange(block),colrange(block),compressor)
+compress(K,block::BlockClusterTree,compressor) = compress(K,rowrange(block),colrange(block),compressor)
 
 """
     ACA <: AbstractCompressor
@@ -8,7 +8,7 @@ compress(K,block,compressor::AbstractCompressor) = compress(K,rowrange(block),co
 Adaptive cross approximation compressor with full pivoting for finding cross. Requires evaluation of entire matrix, but
 is guaranteed  to work.
 """
-@Base.kwdef struct ACA
+@Base.kwdef struct ACA <: AbstractCompressor
     atol::Float64 = 0
     rank::Int     = typemax(Int)
     rtol::Float64 = atol>0 || rank<typemax(Int) ? 0 : sqrt(eps(Float64))
@@ -49,7 +49,7 @@ end
 
 Adaptive cross approximation compressor with partial pivoting for finding cross. Does not require evaluation of entire matrix, but is not guaranteed to converge either.
 """
-@Base.kwdef struct PartialACA
+@Base.kwdef struct PartialACA <: AbstractCompressor
     atol::Float64 = 0
     rank::Int     = typemax(Int)
     rtol::Float64 = atol>0 || rank<typemax(Int) ? 0 : sqrt(eps(Float64))
@@ -103,8 +103,3 @@ function _nextcol(col,J)
     return out
 end
 _nextrow(row,I) = _nextcol(row,I)
-
-function LinearAlgebra.norm(R::RkFlexMatrix,p::Int=2)
-    #TODO: improve this very rough estimation of the norm
-    isempty(R) ? 0.0 : LinearAlgebra.norm(R.A[:,1],p)*LinearAlgebra.norm(R.B[:,1],p)
-end

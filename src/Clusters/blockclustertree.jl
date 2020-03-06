@@ -27,8 +27,8 @@ getparent(bclt::BlockClusterTree)             = bclt.parent
 setchildren!(bclt::BlockClusterTree,children) = (bclt.children = children)
 setparent!(bclt::BlockClusterTree,parent)     = (bclt.parent   = parent)
 
-isleaf(clt::BlockClusterTree)       = children(clt) === ()
-isroot(clt::BlockClusterTree)       = parent(clt)   === ()
+isleaf(clt::BlockClusterTree)       = getchildren(clt) === ()
+isroot(clt::BlockClusterTree)       = getparent(clt)   === ()
 isadmissible(clt::BlockClusterTree) = clt.admissible
 
 rowcluster(bclt::BlockClusterTree) = bclt.row_cluster
