@@ -9,7 +9,7 @@ import RecipesBase
 import AbstractTrees
 import Statistics
 
-import ..Interfaces: bounding_box, split
+import ..Interfaces: container, split, diameter, distance
 using  ..HierarchicalMatrices: Maybe
 
 export ClusterTree, BlockClusterTree

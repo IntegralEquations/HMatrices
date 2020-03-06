@@ -3,8 +3,10 @@
 module Interfaces
 
 # Geometry <--> Clusters
-function bounding_box end
+function container end
 function split end
+function diameter end
+function distance end
 
 # trees
 function getchildren end

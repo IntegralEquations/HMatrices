@@ -3,7 +3,7 @@ module Geometry
 import LinearAlgebra
 import RecipesBase
 
-import ..Interfaces: bounding_box, split
+import ..Interfaces: container, split, diameter, distance
 
 export Point, HyperRectangle
 
