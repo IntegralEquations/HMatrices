@@ -66,6 +66,7 @@ function bounding_box(data)
     pt_max = maximum(data)
     return HyperRectangle(pt_min,pt_max)
 end
+container(data::Vector{<:Point}) = bounding_box(data)
 
 center(rec::HyperRectangle) = (rec.low_corner + rec.high_corner) ./ 2
 radius(rec::HyperRectangle) = diameter(rec) ./ 2

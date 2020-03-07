@@ -6,7 +6,7 @@ Tree structure used to cluster data in of type `T` into containers of type `S`.
 mutable struct ClusterTree{T,S}
     data::T
     perm::Vector{Int}
-    bounding_box::S
+    container::S
     index_range::UnitRange{Int}
     children::Maybe{Vector{ClusterTree{T,S}}}
     parent::Maybe{ClusterTree{T,S}}
@@ -21,14 +21,13 @@ getperm(clt::ClusterTree)     = clt.perm
 setchildren!(clt::ClusterTree,children) = (clt.children = children)
 setparent!(clt::ClusterTree,parent)     = (clt.parent   = parent)
 setdata!(clt::ClusterTree,data)     = (clt.data = data)
+container(clt::ClusterTree) = clt.container
 
 isleaf(clt::ClusterTree) = getchildren(clt)  === ()
 isroot(clt::ClusterTree) = getparent(clt) === ()
 
-diameter(node::ClusterTree)                         = Geometry.diameter(node.bounding_box)
-distance(node1::ClusterTree,node2::ClusterTree)     = Geometry.distance(node1.bounding_box, node2.bounding_box)
-
-bounding_box(clt::ClusterTree) = clt.bounding_box
+diameter(node::ClusterTree)                         = diameter(container(node))
+distance(node1::ClusterTree,node2::ClusterTree)     = distance(container(node1), container(node2))
 
 Base.length(node::ClusterTree) = length(node.index_range)
 Base.range(node::ClusterTree)  = node.index_range
@@ -47,7 +46,7 @@ function ClusterTree(data, splitter=CardinalitySplitter(); reorder=true)
     n_el    = length(data)
     indices   = collect(1:n_el)
     #build the root, then recurse
-    bbox    = Geometry.bounding_box(data)
+    bbox    = container(data)
     root    = ClusterTree(data,indices,bbox,1:n_el,(),())
     _build_cluster_tree!(root,splitter)
     return root
@@ -94,7 +93,7 @@ RecipesBase.@recipe function f(tree::ClusterTree)
         RecipesBase.@series begin
             linestyle --> :solid
             color  --> :black
-            leaf.bounding_box
+            leaf.container
         end
     end
 end

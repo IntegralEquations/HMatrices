@@ -20,10 +20,10 @@ should_split(node::ClusterTree,splitter::AbstractSplitter) = length(node) > spli
 
 function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
     perm                = cluster.perm
-    rec                 = bounding_box(cluster)
+    rec                 = container(cluster)
     index_range         = cluster.index_range
     data                = getdata(cluster)
-    left_rec, right_rec = Geometry.split(rec, dir, pos)
+    left_rec, right_rec = split(rec, dir, pos)
     perm_idxs           = Vector{Int}(undef,length(cluster))
     npts_left           = 0
     npts_right          = 0
@@ -43,8 +43,8 @@ function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
     left_index_range      = index_range.start:(index_range.start)+npts_left-1
     right_index_range     = (index_range.start+npts_left):index_range.stop
     if shrink
-        left_rec   = Geometry.bounding_box(data[left_index_range])
-        right_rec  = Geometry.bounding_box(data[right_index_range])
+        left_rec   = container(data[left_index_range])
+        right_rec  = container(data[right_index_range])
     end
     clt1 = ClusterTree(data, perm, left_rec,  left_index_range,  (), cluster)
     clt2 = ClusterTree(data, perm, right_rec, right_index_range, (), cluster)
@@ -52,20 +52,20 @@ function _binary_split(cluster::ClusterTree,dir,pos,shrink=true)
 end
 
 function split!(cluster::ClusterTree,splitter::GeometricSplitter)
-    rec  = bounding_box(cluster)
+    rec  = container(cluster)
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     return _binary_split(cluster, imax, rec.low_corner[imax]+wmax/2, false)
 end
 
 function split!(cluster::ClusterTree,splitter::GeometricMinimalSplitter)
-    rec  = bounding_box(cluster)
+    rec  = container(cluster)
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     return _binary_split(cluster, imax, rec.low_corner[imax]+wmax/2)
 end
 
 function split!(cluster::ClusterTree,splitter::CardinalitySplitter)
     data                = getdata(cluster)
-    rec                 = bounding_box(cluster)
+    rec                 = container(cluster)
     index_range         = cluster.index_range
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     med                 = Statistics.median(data[n][imax] for n in index_range) # the median along largest axis `imax`

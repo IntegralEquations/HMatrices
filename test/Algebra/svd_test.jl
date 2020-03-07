@@ -1,7 +1,7 @@
 using SafeTestsets
 
 @safetestset "svd" begin
-    using HierarchicalMatrices.Matrices
+    using HierarchicalMatrices:  RkMatrix
     using LinearAlgebra: svd, svd!
     m,n,r = 20, 10, 5
     Rk = rand(RkMatrix,m,n,r)

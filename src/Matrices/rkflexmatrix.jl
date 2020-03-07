@@ -43,3 +43,5 @@ function pushcross!(R::RkFlexMatrix,col,row)
     pushcol!(R.B,row)
     return R
 end
+
+rank(M::RkFlexMatrix) = size(M.A,2)

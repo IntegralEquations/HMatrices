@@ -1,8 +1,8 @@
 using SafeTestsets
 
 @safetestset "RkMatrix" begin
-    using HierarchicalMatrices.Matrices
-    using HierarchicalMatrices.Matrices: num_elements, compression_rate
+    using HierarchicalMatrices
+    using HierarchicalMatrices: FlexMatrix, RkFlexMatrix, RkMatrix, num_elements, compression_rate
     @testset "Simple ops" begin
         let
             m,n,r = 10,20,5
