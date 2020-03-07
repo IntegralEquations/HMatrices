@@ -61,6 +61,7 @@ function compress(K,irange::UnitRange,jrange::UnitRange,aca::PartialACA)
 end
 
 function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
+    ishift,jshift = irange.start-1, jrange.start-1
     T   = Base.eltype(K)
     m,n = length(irange),length(jrange)
     R   = RkFlexMatrix{T}(undef,m,n,0)
@@ -70,9 +71,11 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
     er  = Inf
     est_norm = 0 #approximate norm of K
     while er > max(atol,rtol*est_norm) && rank(R) < rmax
+        @info er
         I[i] = false  # remove index i from allowed row
-        b    = isempty(R) ? conj(K[i,jrange]) : conj(K[i,:] - R[i,:])
+        b    = isempty(R) ? conj(K[i+ishift,jrange]) : conj(K[i+ishift,jrange] - R[i,:])
         j    = _nextcol(b,J)
+        j == -1 && (return R)
         δ    = b[j]
         if δ == 0
             i = findfirst(x->x==true,J)
@@ -80,11 +83,12 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
         else # δ != 0
             LinearAlgebra.rdiv!(b,δ) # b <-- b/δ
             J[j] = false
-            a    = isempty(R) ? K[:,j] : K[:,j] - R[:,j] # compute a column
+            a    = isempty(R) ? K[irange,j+jshift] : K[irange,j+jshift] - R[:,j] # compute a column
             pushcross!(R,a,b)
             er       = norm(a)*norm(b) # approximate error
             est_norm = norm(R)
             i        = _nextrow(a,I)
+            i == -1 && (return R)
         end
     end
     return R
