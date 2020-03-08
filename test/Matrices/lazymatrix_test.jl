@@ -1,6 +1,6 @@
 using SafeTestsets
 
-@safetestset "LaxyMatrix" begin
+@safetestset "LazyMatrix" begin
     using HierarchicalMatrices
     using HierarchicalMatrices: LazyMatrix
     @testset "Simple ops" begin

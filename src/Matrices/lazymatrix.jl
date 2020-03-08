@@ -10,3 +10,5 @@ function LazyMatrix(f,X,Y)
     T = Base.promote_op(f,eltype(X),eltype(Y))
     LazyMatrix{typeof(f),typeof(X),typeof(Y),T}(f,X,Y)
 end
+
+#TODO: support algebra of LazyMatrix?
