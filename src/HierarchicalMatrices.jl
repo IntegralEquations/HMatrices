@@ -3,7 +3,7 @@ module HierarchicalMatrices
 import LinearAlgebra
 import AbstractTrees
 
-export HMatrix
+export HMatrix, LazyMatrix
 
 include("Interfaces.jl")
 include("utils.jl")

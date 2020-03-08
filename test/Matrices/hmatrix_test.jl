@@ -8,14 +8,17 @@ using SafeTestsets
     using LinearAlgebra
     @testset "Assembly" begin
         let
-            N    = 100
-            data = rand(Point{3,Float64},N)
+            N    = 1000
+            data = rand(Point{2,Float64},N)
             splitter   = Clusters.CardinalitySplitter(nmax=32)
             clt = ClusterTree(data,splitter;reorder=true)
             bclt = BlockClusterTree(clt,clt)
-            comp = HierarchicalMatrices.ACA()
             f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
-            M    = [f(x,y) for x in data, y in data]
+            M    = LazyMatrix(f,data,data)
+            comp = HierarchicalMatrices.ACA()
+            H    = HMatrix(M,bclt,comp)
+            @test norm(H-M,2) < comp.rtol*norm(M)
+            comp = HierarchicalMatrices.PartialACA()
             H    = HMatrix(M,bclt,comp)
             @test norm(H-M,2) < comp.rtol*norm(M)
         end
