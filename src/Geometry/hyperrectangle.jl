@@ -7,11 +7,12 @@ struct HyperRectangle{N,T}
     low_corner::Point{N,T}
     high_corner::Point{N,T}
 end
+HyperRectangle(args...) = HyperRectangle(promote(args...))
 
 Base.:(==)(h1::HyperRectangle, h2::HyperRectangle) = (h1.low_corner == h2.low_corner) && (h1.high_corner == h2.high_corner)
-Base.in(point,h::HyperRectangle) = all(h.high_corner .>= point .>= h.low_corner)
-Base.eltype(h::HyperRectangle{N,T}) where {N,T} = T
-dimension(h::HyperRectangle{N}) where {N} = N
+Base.in(point,h::HyperRectangle)                   = all(h.high_corner .>= point .>= h.low_corner)
+Base.eltype(h::HyperRectangle{N,T}) where {N,T}    = T
+dimension(h::HyperRectangle{N}) where {N}          = N
 
 ################################################################################
 ## CONVENIENCE FUNCTIONS FOR HYPERRECTANGLES
@@ -29,7 +30,7 @@ function split(rec::HyperRectangle,axis,place)
     low_corner2  = ntuple(n-> n==axis ? place : rec.low_corner[n], N)
     rec1         = HyperRectangle{N,T}(rec.low_corner, high_corner1)
     rec2         = HyperRectangle{N,T}(low_corner2,rec.high_corner)
-    return [rec1, rec2]
+    return (rec1, rec2)
 end
 
 """
@@ -40,7 +41,6 @@ function split(rec::HyperRectangle,axis)
     place              = (rec.high_corner[axis] + rec.low_corner[axis])/2
     split(rec,axis,place)
 end
-
 
 """
     split(rec::HyperRectangle)
@@ -66,17 +66,18 @@ function bounding_box(data)
     pt_max = maximum(data)
     return HyperRectangle(pt_min,pt_max)
 end
+container(data::Vector{<:Point}) = bounding_box(data)
 
 center(rec::HyperRectangle) = (rec.low_corner + rec.high_corner) ./ 2
-radius(rec::HyperRectangle) = norm(rec.high_corner-rec.low_corner) ./ 2
-
+radius(rec::HyperRectangle) = diameter(rec) ./ 2
 
 ################################################################################
 ## PLOTTING RECIPES
 ################################################################################
-@recipe function f(rec::HyperRectangle{N}) where {N}
+RecipesBase.@recipe function f(rec::HyperRectangle{N}) where {N}
+    seriestype := :path
+    label := ""
     if N == 2
-        seriestype := :path
         pt1 = rec.low_corner
         pt2 = rec.high_corner
         x1, x2 = pt1[1],pt2[1]
@@ -89,11 +90,11 @@ radius(rec::HyperRectangle) = norm(rec.high_corner-rec.low_corner) ./ 2
         x1, x2 = pt1[1],pt2[1]
         y1, y2 = pt1[2],pt2[2]
         z1, z2 = pt1[3],pt2[3]
-        @series [x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1],[z1,z1,z1,z1,z1]
-        @series [x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1],[z2,z2,z2,z2,z2]
-        @series [x1,x1],[y1,y1],[z1,z2]
-        @series [x2,x2],[y1,y1],[z1,z2]
-        @series [x2,x2],[y2,y2],[z1,z2]
-        @series [x1,x1],[y2,y2],[z1,z2]
+        RecipesBase.@series [x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1],[z1,z1,z1,z1,z1]
+        RecipesBase.@series [x1,x2,x2,x1,x1],[y1,y1,y2,y2,y1],[z2,z2,z2,z2,z2]
+        RecipesBase.@series [x1,x1],[y1,y1],[z1,z2]
+        RecipesBase.@series [x2,x2],[y1,y1],[z1,z2]
+        RecipesBase.@series [x2,x2],[y2,y2],[z1,z2]
+        RecipesBase.@series [x1,x1],[y2,y2],[z1,z2]
     end
 end
