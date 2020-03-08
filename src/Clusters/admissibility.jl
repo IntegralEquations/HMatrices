@@ -3,7 +3,7 @@ abstract type AbstractAdmissibilityCondition end
 (adm::AbstractAdmissibilityCondition)(bclt::BlockClusterTree) = adm(rowcluster(bclt),colcluster(bclt))
 
 Base.@kwdef struct AdmissibilityStandard <: AbstractAdmissibilityCondition
-    eta::Float64=2
+    eta::Float64=3
 end
 
 function (adm::AdmissibilityStandard)(left_node::ClusterTree, right_node::ClusterTree)

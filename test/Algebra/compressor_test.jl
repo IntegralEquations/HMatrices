@@ -31,11 +31,11 @@ using SafeTestsets
         R = compress(M,irange,jrange,aca)
         @test norm(Matrix(R) - M) < atol
         rtol = 1e-5
-        aca = ACA(rtol=rtol)
+        aca = PartialACA(rtol=rtol)
         R = compress(M,irange,jrange,aca)
         @test norm(Matrix(R) - M) < rtol*norm(M)
         r = 10
-        aca = ACA(rank=r)
+        aca = PartialACA(rank=r)
         R = compress(M,irange,jrange,aca)
         @test rank(R) == r
     end

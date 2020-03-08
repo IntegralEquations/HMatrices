@@ -71,7 +71,6 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
     er  = Inf
     est_norm = 0 #approximate norm of K
     while er > max(atol,rtol*est_norm) && rank(R) < rmax
-        @info er
         I[i] = false  # remove index i from allowed row
         b    = isempty(R) ? conj(K[i+ishift,jrange]) : conj(K[i+ishift,jrange] - R[i,:])
         j    = _nextcol(b,J)
