@@ -1,19 +1,19 @@
 abstract type AbstractSplitter end
 
 @Base.kwdef struct GeometricSplitter <: AbstractSplitter
-    nmax::Int=64
+    nmax::Int=Parameters.nmax
 end
 
 @Base.kwdef struct GeometricMinimalSplitter <: AbstractSplitter
-    nmax::Int=64
+    nmax::Int=Parameters.nmax
 end
 
 @Base.kwdef struct CardinalitySplitter <: AbstractSplitter
-    nmax::Int=64
+    nmax::Int=Parameters.nmax
 end
 
 @Base.kwdef struct NestedDissectionSplitter <: AbstractSplitter
-    nmax::Int=64
+    nmax::Int=Parameters.nmax
 end
 
 should_split(node::ClusterTree,splitter::AbstractSplitter) = length(node) > splitter.nmax
