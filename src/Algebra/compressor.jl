@@ -74,7 +74,6 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
         I[i] = false  # remove index i from allowed row
         b    = isempty(R) ? conj(K[i+ishift,jrange]) : conj(K[i+ishift,jrange] - R[i,:])
         j    = _nextcol(b,J)
-        j == -1 && (return R)
         δ    = b[j]
         if δ == 0
             i = findfirst(x->x==true,J)
@@ -87,7 +86,6 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
             er       = norm(a)*norm(b) # approximate error
             est_norm = norm(R)
             i        = _nextrow(a,I)
-            i == -1 && (return R)
         end
     end
     return R
