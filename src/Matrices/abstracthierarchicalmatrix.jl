@@ -17,14 +17,15 @@ end
 
 Base.size(H::AbstractHierarchicalMatrix) = length(rowrange(H)), length(colrange(H))
 
-rowrange(H::AbstractHierarchicalMatrix) = H.rowrange
-colrange(H::AbstractHierarchicalMatrix) = H.colrange
-getchildren(H::AbstractHierarchicalMatrix)                 = H.children
-setchildren!(H::AbstractHierarchicalMatrix,chd)            = (H.children = chd)
+rowrange(H::AbstractHierarchicalMatrix)         = H.rowrange
+colrange(H::AbstractHierarchicalMatrix)         = H.colrange
+getchildren(H::AbstractHierarchicalMatrix)      = H.children
+setchildren!(H::AbstractHierarchicalMatrix,chd) = (H.children = chd)
 getparent(H::AbstractHierarchicalMatrix)        = H.parent
-setparent!(H::AbstractHierarchicalMatrix,par)   = (H.parent = par)
+setparent!(H::AbstractHierarchicalMatrix,par)   = (H.parent   = par)
 getdata(H::AbstractHierarchicalMatrix)          = H.data
-setdata!(H::AbstractHierarchicalMatrix,data)    = (H.data = data)
+setdata!(H::AbstractHierarchicalMatrix,data)    = (H.data     = data)
+isadmissible(H::AbstractHierarchicalMatrix)     = H.admissible
 
 _idx_pivot(H::AbstractHierarchicalMatrix)   = rowrange(H).start, colrange(H).start
 _idx_global_to_local(I,J,H::AbstractHierarchicalMatrix) = (I,J) .- _idx_pivot(H) .+ 1

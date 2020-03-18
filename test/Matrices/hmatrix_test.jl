@@ -2,7 +2,7 @@ using SafeTestsets
 
 @safetestset "HMatrix" begin
     using HierarchicalMatrices
-    using HierarchicalMatrices: compress, ACA, PartialACA
+    using HierarchicalMatrices: ACA, PartialACA
     using HierarchicalMatrices.Geometry
     using HierarchicalMatrices.Clusters
     using LinearAlgebra

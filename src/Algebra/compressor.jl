@@ -1,7 +1,5 @@
 abstract type AbstractCompressor end
 
-compress(K,block::BlockClusterTree,compressor) = compress(K,rowrange(block),colrange(block),compressor)
-
 """
     ACA <: AbstractCompressor
 
@@ -15,7 +13,7 @@ is guaranteed  to work.
     p::Int = 2
 end
 
-function compress(K,irange::UnitRange,jrange::UnitRange,aca::ACA)
+function (aca::ACA)(K,irange::UnitRange,jrange::UnitRange)
     M  = K[irange,jrange] #computes the entire matrix.
     _aca_full!(M,aca.atol,aca.rank,aca.rtol,x->LinearAlgebra.norm(x,aca.p))
 end
@@ -56,8 +54,8 @@ Adaptive cross approximation compressor with partial pivoting for finding cross.
     p::Int = 2
 end
 
-function compress(K,irange::UnitRange,jrange::UnitRange,aca::PartialACA)
-    _aca_partial(K,irange,jrange,aca.atol,aca.rank,aca.rtol,x->LinearAlgebra.norm(x,aca.p))
+function (paca::PartialACA)(K,irange::UnitRange,jrange::UnitRange)
+    _aca_partial(K,irange,jrange,paca.atol,paca.rank,paca.rtol,x->LinearAlgebra.norm(x,paca.p))
 end
 
 function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
