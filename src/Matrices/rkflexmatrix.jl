@@ -12,7 +12,7 @@ struct RkFlexMatrix{T} <: AbstractMatrix{T}
         @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
         m,r = size(A)
         n  = size(B,1)
-        if  r*(m+n) >= m*n
+        if  r*(m+n) >= m*n && m*n != 0
             @debug "Inefficient RkFlexMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
         end
         new{T}(A,B)
@@ -26,6 +26,8 @@ RkFlexMatrix{T}(undef,m,n,r) where {T} = RkFlexMatrix(FlexMatrix{T}(undef,m,r),F
 Base.size(rmat::RkFlexMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
 Base.isapprox(rmat::RkFlexMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
 Base.getindex(rmat::RkFlexMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
+Base.getindex(rmat::RkFlexMatrix,i::Int,::Colon)                     = conj(rmat.B)*rmat.A[i,:]
+Base.getindex(rmat::RkFlexMatrix,::Colon,j::Int)                     = rmat.A*conj(rmat.B[j,:])
 
 function Base.getproperty(R::RkFlexMatrix,s::Symbol)
     if  s == :Bt
@@ -38,10 +40,9 @@ function Base.getproperty(R::RkFlexMatrix,s::Symbol)
 end
 
 function pushcross!(R::RkFlexMatrix,col,row)
-    @debug length(col), length(row), size(R)
     pushcol!(R.A,col)
     pushcol!(R.B,row)
     return R
 end
 
-rank(M::RkFlexMatrix) = size(M.A,2)
+LinearAlgebra.rank(M::RkFlexMatrix) = size(M.A,2)

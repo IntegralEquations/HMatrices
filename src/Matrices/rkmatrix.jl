@@ -103,4 +103,4 @@ Matrix(R::RkMatrix) = R.A*R.Bt
 num_elements(R::RkMatrix)        = size(R.A,2)*(sum(size(R)))
 compression_rate(R::RkMatrix)    = num_elements(R) / prod(size(R))
 
-rank(M::RkMatrix) = size(M.A,2)
+LinearAlgebra.rank(M::RkMatrix) = size(M.A,2)

@@ -13,35 +13,21 @@ mutable struct HMatrix{S,F,T} <: AbstractHierarchicalMatrix{T}
     end
 end
 
-function HMatrix(K,block,comp)
+HMatrix(args...;kwargs...) = HMatrix(CPU1(),args...;kwargs...)
+function HMatrix(resource::AbstractCPU,K,block,comp)
     T = eltype(K)
     S = Base.promote_op(comp,typeof(K),typeof(rowrange(block)),typeof(colrange(block)))
     F = Matrix{T}
-    HMatrix{S,F,T}(K,block,comp)
+    HMatrix{S,F,T}(resource,K,block,comp)
 end
 
-function HMatrix{S,F,T}(K,block,comp) where {S,F,T}
+function HMatrix{S,F,T}(resource::AbstractCPU,K,block,comp) where {S,F,T}
     #TODO: add prehook?
     # initialize the HMatrix structure from block
     hmat = HMatrix{S,F,T}(block)
     # recursion
-    assemble!(hmat,K,comp) # recursive function
+    assemble!(resource,hmat,K,comp) # recursive function
     #TODO: add posthook to e.g. coarsen or recompress immediately  after construction
-    return hmat
-end
-
-function assemble!(hmat,K,comp)
-    if !isleaf(hmat)
-        for child in getchildren(hmat)
-            assemble!(child,K,comp)
-        end
-    elseif !isadmissible(hmat)
-        data = [K[i,j] for i in rowrange(hmat), j in colrange(hmat)]
-        setdata!(hmat,data)
-    else
-        data = comp(K,rowrange(hmat),colrange(hmat))
-        setdata!(hmat,data)
-    end
     return hmat
 end
 
@@ -50,6 +36,36 @@ function HMatrix{S,F,T}(block::BlockClusterTree) where {S,F,T}
     children = HMatrix{S,F,T}.(getchildren(block))
     setchildren!(hmat,children)
     map(x->setparent!(x,hmat),children)
+    return hmat
+end
+
+function assemble!(resource::CPU1,hmat,K,comp)
+    for leaf in AbstractTrees.Leaves(hmat)
+        if isadmissible(leaf)
+            data = comp(K,rowrange(leaf),colrange(leaf))
+            setdata!(leaf,data)
+        else
+            data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
+            setdata!(leaf,data)
+        end
+    end
+    return hmat
+end
+
+function assemble!(::CPUThreads,hmat,K,comp)
+    @sync for leaf in AbstractTrees.Leaves(hmat)
+        if isadmissible(leaf)
+            @spawn begin
+                data = comp(K,rowrange(leaf),colrange(leaf))
+                setdata!(leaf,data)
+            end
+        else
+            @spawn begin
+                data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
+                setdata!(leaf,data)
+            end
+        end
+    end
     return hmat
 end
 
