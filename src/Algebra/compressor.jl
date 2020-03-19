@@ -25,7 +25,6 @@ function _aca_full!(M, atol, rmax, rtol, norm)
     er = Inf
     exact_norm = norm(M) #exact norm
     while er > max(atol,rtol*exact_norm) && rank(R) < rmax
-        @debug er
         (i,j) = argmax(abs.(M)).I
         δ       = M[i,j]
         if δ == 0
@@ -59,30 +58,42 @@ function (paca::PartialACA)(K,irange::UnitRange,jrange::UnitRange)
 end
 
 function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
-    ishift,jshift = irange.start-1, jrange.start-1
+    ishift,jshift = irange.start-1, jrange.start-1 #maps global indices to local indices
     T   = Base.eltype(K)
     m,n = length(irange),length(jrange)
     R   = RkFlexMatrix{T}(undef,m,n,0)
+    A   = R.A
+    B   = R.B
     I   = [true for i = 1:m]
     J   = [true for i = 1:n]
     i   = 1
     er  = Inf
     est_norm = 0 #approximate norm of K
     while er > max(atol,rtol*est_norm) && rank(R) < rmax
-        I[i] = false  # remove index i from allowed row
-        b    = isempty(R) ? conj(K[i+ishift,jrange]) : conj(K[i+ishift,jrange] - R[i,:])
+        # remove index i from allowed row
+        I[i] = false
+        # compute next row by b <-- conj(K[i+ishift,jrange] - R[i,:])
+        b    = conj(K[i+ishift,jrange])
+        for k = 1:rank(R)
+            axpy!(-conj(A[i,k]),B[:,k],b)
+        end
         j    = _nextcol(b,J)
         δ    = b[j]
         if δ == 0
             i = findfirst(x->x==true,J)
             isnothing(i) && error("aca did not converge")
         else # δ != 0
-            LinearAlgebra.rdiv!(b,δ) # b <-- b/δ
+            rdiv!(b,δ) # b <-- b/δ
             J[j] = false
-            a    = isempty(R) ? K[irange,j+jshift] : K[irange,j+jshift] - R[:,j] # compute a column
+            # compute next col by a <-- K[irange,j+jshift] - R[:,j]
+            a    = K[irange,j+jshift]
+            for k = 1:rank(R)
+                axpy!(-conj(B[j,k]),A[:,k],a)
+            end
+
             pushcross!(R,a,b)
-            er       = norm(a)*norm(b) # approximate error
-            est_norm = norm(R)
+            er       = norm(a)*norm(b) # estimate the error
+            est_norm = norm(R) #use norm of approximation as an approximation of the norm
             i        = _nextrow(a,I)
         end
     end
