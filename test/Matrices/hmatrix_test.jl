@@ -5,7 +5,6 @@ using SafeTestsets
     using HierarchicalMatrices: ACA, PartialACA
     using ComputationalResources
     using LinearAlgebra
-    HierarchicalMatrices.debug()
     N    = 1000
     data = rand(Geometry.Point{2,Float64},N)
     splitter   = Clusters.CardinalitySplitter(nmax=128)
