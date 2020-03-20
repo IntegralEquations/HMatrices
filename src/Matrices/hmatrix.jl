@@ -40,7 +40,50 @@ function HMatrix{S,F,T}(block::BlockClusterTree) where {S,F,T}
 end
 
 function assemble!(resource::CPU1,hmat,K,comp)
-    for leaf in AbstractTrees.Leaves(hmat)
+    if isleaf(hmat)
+        if isadmissible(hmat)
+            data = comp(K,rowrange(hmat),colrange(hmat))
+            setdata!(hmat,data)
+        else
+            data = [K[i,j] for i in rowrange(hmat), j in colrange(hmat)]
+            setdata!(hmat,data)
+        end
+    else
+        for child in getchildren(hmat)
+            assemble!(resource,child,K,comp)
+        end
+    end
+    return hmat
+end
+
+# function assemble!(::CPUThreads,hmat,K,comp)
+#     @sync for leaf in AbstractTrees.Leaves(hmat)
+#         if isadmissible(leaf)
+#             @spawn begin
+#                 data = comp(K,rowrange(leaf),colrange(leaf))
+#                 setdata!(leaf,data)
+#             end
+#         else
+#             @spawn begin
+#                 data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
+#                 setdata!(leaf,data)
+#             end
+#         end
+#     end
+#     return hmat
+# end
+
+function assemble!(::CPUThreads,hmat::T,K,comp) where {T}
+    leaves = LeavesChannel(hmat,Inf)
+    # sort!(leaves.data,lt = (a,b)->length(a)>length(b))
+    @sync for _ in 1:Threads.nthreads()
+        @spawn _process_leaves(K,comp,leaves)
+    end
+    return hmat
+end
+
+function _process_leaves(K,comp,leaves)
+    for leaf in leaves
         if isadmissible(leaf)
             data = comp(K,rowrange(leaf),colrange(leaf))
             setdata!(leaf,data)
@@ -49,24 +92,7 @@ function assemble!(resource::CPU1,hmat,K,comp)
             setdata!(leaf,data)
         end
     end
-    return hmat
-end
-
-function assemble!(::CPUThreads,hmat,K,comp)
-    @sync for leaf in AbstractTrees.Leaves(hmat)
-        if isadmissible(leaf)
-            @spawn begin
-                data = comp(K,rowrange(leaf),colrange(leaf))
-                setdata!(leaf,data)
-            end
-        else
-            @spawn begin
-                data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
-                setdata!(leaf,data)
-            end
-        end
-    end
-    return hmat
+    return leaves
 end
 
 sparsetype(h::HMatrix{S}) where {S} = S
