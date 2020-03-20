@@ -78,38 +78,6 @@ function _multiply_leaf!(C,H,F,a,b)
     return Cview
 end
 
-    if isleaf(H)
-        data = getdata(H)
-        mul!(C,data,F,a,1)
-    else
-        children = getchildren(H)
-        m,n      = size(children)
-        shift    = _idx_pivot(H) .- 1
-        t        = Matrix{Task}(undef,m,n)
-        for i=1:m
-            # TODO: choose between a ReentrantLock or a Semaphore here
-            mutex = ReentrantLock()
-            # mutex = Base.Semaphore(1)
-            for j=1:n
-                block  = children[i,j]
-                irange = rowrange(block) .- shift[1]
-                Cview  = view(C,irange)
-                jrange = colrange(block) .- shift[2]
-                Fview  = view(F,jrange)
-                t[i,j] = @spawn begin
-                    lock(mutex)
-                    # Base.acquire(mutex)
-                    _cputhreads_hmul!(Cview,block,Fview,a,1)
-                    # Base.release(mutex)
-                    unlock(mutex)
-                end
-            end
-        end
-        waitall(t)
-    end
-    return C
-end
-
 waitall(t) = [wait(ti) for ti in t]
 
 function LinearAlgebra.mul!(C::AbstractVector,Rk::RkFlexMatrix,F::AbstractVector,a::Number,b::Number,buffer=similar(C,rank(Rk)))
