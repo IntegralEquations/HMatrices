@@ -6,9 +6,9 @@ using SafeTestsets
     using LinearAlgebra
     @testset "CPU1 mul!" begin
         let
-            N    = 2000
+            N    = 1000
             data = rand(Geometry.Point{2,Float64},N)
-            splitter   = Clusters.CardinalitySplitter()
+            splitter   = Clusters.GeometricMinimalSplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)
             bclt = Clusters.BlockClusterTree(clt,clt)
             comp = HierarchicalMatrices.PartialACA(rtol=1e-4)
@@ -29,8 +29,9 @@ using SafeTestsets
     end
     @testset "CPUThreads mul!" begin
         let
-            N    = 2000
-            data = rand(Geometry.Point{2,Float64},N)
+            N    = 1000
+            data = Geometry.points_on_cylinder(N,1,3/sqrt(N))
+            # data = rand(Geometry.Point{2,Float64},N)
             splitter   = Clusters.CardinalitySplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)
             bclt = Clusters.BlockClusterTree(clt,clt)
@@ -41,8 +42,8 @@ using SafeTestsets
             x    = rand(ComplexF64,N)
             y    = zero(x)
             # 3-arg mul
-            # mul!(CPUThreads(),y,H,x)
-            # @test norm(y-M*x) < 10*comp.rtol*norm(M)
+            mul!(CPUThreads(),y,H,x)
+            @test norm(y-M*x) < 10*comp.rtol*norm(M)
             # 5-arg mul
             a = 1; b=2;
             tmp = b*y + a*M*x
