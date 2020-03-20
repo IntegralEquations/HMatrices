@@ -17,9 +17,10 @@ config = BenchmarkConfig(env = env,
                          juliacmd = `julia -O3 --check-bounds=no`)
 
 dir       = @__DIR__
-fname     = "assembly_benchmark.jl"
+# fname     = "assembly_benchmark.jl"
+fname     = "gemv_benchmark.jl"
 script    = joinpath(dir,fname)
-retune    = false
+retune    = true
 results   = benchmarkpkg("HierarchicalMatrices",config;
                          retune=retune,
                          script=script)

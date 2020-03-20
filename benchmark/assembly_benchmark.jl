@@ -3,32 +3,28 @@ using PkgBenchmark
 using LinearAlgebra
 using HierarchicalMatrices
 using HierarchicalMatrices: PartialACA
-using HierarchicalMatrices.Clusters: CardinalitySplitter, GeometricMinimalSplitter, AdmissibilityStandard
+# using HierarchicalMatrices.Clusters: CardinalitySplitter, GeometricMinimalSplitter, AdmissibilityStandard
 using ComputationalResources
 
-const SUITE                        = BenchmarkGroup()
-SUITE["HMatrix"]             = BenchmarkGroup(["hmatrix","hmat"])
-SUITE["HMatrix"]["assembly"] = BenchmarkGroup(["assembly","aca"])
-SUITE["HMatrix"]["assembly"] = BenchmarkGroup(["assembly","aca"])
-SUITE["HMatrix"]["gemv"]     = BenchmarkGroup(["assembly","aca"])
+const SUITE = BenchmarkGroup()
+SUITE["HMatrix"] = BenchmarkGroup(["hmatrix", "hmat"])
+SUITE["HMatrix"]["assembly"] = BenchmarkGroup(["assembly", "aca"])
 
-rtol               = 1e-6
-N                  = 30000
-data               = Geometry.points_on_cylinder(N,1,3/sqrt(N))
-f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
-M                  = LazyMatrix(f,data, data)
+rtol = 1e-4
+N = 20000
+data = Geometry.points_on_cylinder(N, 1, 3 / sqrt(N))
+f(x, y)::ComplexF64 = x == y ? 0.0 :
+    exp(im * LinearAlgebra.norm(x - y)) / LinearAlgebra.norm(x - y)
+M = LazyMatrix(f, data, data)
 
-splitters   = [Clusters.GeometricMinimalSplitter()]
-admissibles = [Clusters.AdmissibilityStandard(eta) for eta =2:2]
-compressors = [HierarchicalMatrices.PartialACA(rtol=rtol)]
+spl = Clusters.GeometricMinimalSplitter()
+adm = Clusters.AdmissibilityStandard(3)
+comp = HierarchicalMatrices.PartialACA(rtol = rtol)
 
-for spl in splitters
-    clt = Clusters.ClusterTree(data,spl)
-    for adm in admissibles
-        bclt = Clusters.BlockClusterTree(clt,clt,adm)
-        for comp in compressors
-            SUITE["HMatrix"]["assembly"]["CPU1"]       = @benchmarkable $HMatrix($M,$bclt,$comp)
-            SUITE["HMatrix"]["assembly"]["CPUThreads"] = @benchmarkable $HMatrix($(CPUThreads()),$M,$bclt,$comp)
-        end
-    end
-end
+clt = Clusters.ClusterTree(data, spl)
+bclt = Clusters.BlockClusterTree(clt, clt, adm)
+
+H = HMatrix(CPUThreads(), M, bclt, comp)
+
+SUITE["HMatrix"]["assembly"]["CPU1"]       = @benchmarkable $HMatrix($M, $bclt, $comp)
+SUITE["HMatrix"]["assembly"]["CPUThreads"] = @benchmarkable $HMatrix($(CPUThreads()), $M, $bclt, $comp)
