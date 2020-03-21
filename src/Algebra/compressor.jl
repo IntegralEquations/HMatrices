@@ -73,7 +73,7 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
         # remove index i from allowed row
         I[i] = false
         # compute next row by b <-- conj(K[i+ishift,jrange] - R[i,:])
-        b    = conj(K[i+ishift,jrange])
+        b    = conj!(K[i+ishift,jrange])
         for k = 1:rank(R)
             axpy!(-conj(A[i,k]),B[:,k],b)
         end
@@ -90,7 +90,6 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
             for k = 1:rank(R)
                 axpy!(-conj(B[j,k]),A[:,k],a)
             end
-
             pushcross!(R,a,b)
             er       = norm(a)*norm(b) # estimate the error
             est_norm = norm(R) #use norm of approximation as an approximation of the norm
