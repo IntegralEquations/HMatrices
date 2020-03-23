@@ -78,19 +78,19 @@ Plot the point could and the bounding boxes at the leaves of the tree
 """
 plot(tree::ClusterTree,args...) = ()
 
-RecipesBase.@recipe function f(tree::ClusterTree)
+@recipe function f(tree::ClusterTree)
     legend := false
     grid   --> false
     aspect_ratio --> :equal
     # plot points
-    RecipesBase.@series begin
+    @series begin
         seriestype := :scatter
         markersize := 2
         tree.data # assumes data Plots knows how  to plot  data
     end
     # plot bounding boxes
     for leaf in AbstractTrees.Leaves(tree)
-        RecipesBase.@series begin
+        @series begin
             linestyle --> :solid
             color  --> :black
             leaf.container

@@ -5,22 +5,25 @@ Module implementing various cluster trees and block cluster trees to be used in 
 """
 module Clusters
 
-import RecipesBase
+using LinearAlgebra: norm
+using RecipesBase: @recipe, @series
 import AbstractTrees
 import Statistics
 
 using  ..Parameters
 
-import ..Interfaces: container, split, diameter, distance, rowrange, colrange,
-                     isleaf, isroot, getchildren, getparent, isadmissible
+import ..Interface: rowrange, colrange, isleaf, isroot, getchildren, getparent, isadmissible
 
 using  ..HierarchicalMatrices: Maybe
 
-export ClusterTree, BlockClusterTree
+export ClusterTree, BlockTree, Point
 
+include("point.jl")
+include("utils.jl")
+include("hyperrectangle.jl")
 include("clustertree.jl")
 include("splitter.jl")
-include("blockclustertree.jl")
+include("blocktree.jl")
 include("admissibility.jl")
 
 end#module

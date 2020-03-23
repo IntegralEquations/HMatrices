@@ -78,8 +78,6 @@ function _multiply_leaf!(C,H,F,a,b)
     return Cview
 end
 
-waitall(t) = [wait(ti) for ti in t]
-
 function LinearAlgebra.mul!(C::AbstractVector,Rk::RkFlexMatrix,F::AbstractVector,a::Number,b::Number,buffer=similar(C,rank(Rk)))
     buffer = mul!(buffer,Rk.Bt,F)
     mul!(C,Rk.A,buffer,a,b)

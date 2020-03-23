@@ -2,8 +2,7 @@ using SafeTestsets
 
 @safetestset "ClusterTree" begin
     using HierarchicalMatrices.Clusters
-    using HierarchicalMatrices.Clusters: isroot, isleaf
-    using HierarchicalMatrices.Geometry: Point, bounding_box
+    using HierarchicalMatrices.Clusters: isroot, isleaf, Point, bounding_box
     @testset "2d binary clusters" begin
         let
             data = rand(Point{2,Float64},1000)

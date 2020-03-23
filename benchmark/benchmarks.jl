@@ -26,7 +26,7 @@ compressors = [HierarchicalMatrices.PartialACA(rtol=rtol)]
 for spl in splitters
     clt = Clusters.ClusterTree(data,spl)
     for adm in admissibles
-        bclt = Clusters.BlockClusterTree(clt,clt,adm)
+        bclt = Clusters.BlockTree(clt,clt,adm)
         for comp in compressors
             # assembly
             SUITE["HMatrix"]["assembly"]["CPU1"]       = @benchmarkable $HMatrix($M,$bclt,$comp)

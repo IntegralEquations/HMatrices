@@ -22,7 +22,7 @@ adm = Clusters.AdmissibilityStandard(3)
 comp = HierarchicalMatrices.PartialACA(rtol = rtol)
 
 clt = Clusters.ClusterTree(data, spl)
-bclt = Clusters.BlockClusterTree(clt, clt, adm)
+bclt = Clusters.BlockTree(clt, clt, adm)
 
 H = HMatrix(CPUThreads(), M, bclt, comp)
 

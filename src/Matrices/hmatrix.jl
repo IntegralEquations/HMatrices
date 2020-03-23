@@ -31,7 +31,7 @@ function HMatrix{S,F,T}(resource::AbstractCPU,K,block,comp) where {S,F,T}
     return hmat
 end
 
-function HMatrix{S,F,T}(block::BlockClusterTree) where {S,F,T}
+function HMatrix{S,F,T}(block::BlockTree) where {S,F,T}
     hmat = HMatrix{S,F,T}(rowrange(block),colrange(block),isadmissible(block),(),(),())
     children = HMatrix{S,F,T}.(getchildren(block))
     setchildren!(hmat,children)

@@ -9,7 +9,7 @@ using SafeTestsets
     data = rand(Geometry.Point{2,Float64},N)
     splitter   = Clusters.CardinalitySplitter(nmax=128)
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
-    bclt = Clusters.BlockClusterTree(clt,clt)
+    bclt = Clusters.BlockTree(clt,clt)
     f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
     M    = LazyMatrix(f,data,data)
     comp = HierarchicalMatrices.ACA(rtol=1e-6)
