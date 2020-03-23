@@ -74,25 +74,10 @@ end
 # end
 
 function assemble!(::CPUThreads,hmat::T,K,comp) where {T}
-    leaves = LeavesChannel(hmat,Inf)
-    # sort!(leaves.data,lt = (a,b)->length(a)>length(b))
-    @sync for _ in 1:Threads.nthreads()
-        @spawn _process_leaves(K,comp,leaves)
+    @sync for leaf in Leaves(hmat)
+        @spawn assemble!(CPU1(),leaf,K,comp)
     end
     return hmat
-end
-
-function _process_leaves(K,comp,leaves)
-    for leaf in leaves
-        if isadmissible(leaf)
-            data = comp(K,rowrange(leaf),colrange(leaf))
-            setdata!(leaf,data)
-        else
-            data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
-            setdata!(leaf,data)
-        end
-    end
-    return leaves
 end
 
 sparsetype(h::HMatrix{S}) where {S} = S
