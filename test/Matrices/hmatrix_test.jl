@@ -6,7 +6,7 @@ using SafeTestsets
     using ComputationalResources
     using LinearAlgebra
     N    = 1000
-    data = rand(Geometry.Point{2,Float64},N)
+    data = rand(Clusters.Point{2,Float64},N)
     splitter   = Clusters.CardinalitySplitter(nmax=128)
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
     bclt = Clusters.BlockTree(clt,clt)
@@ -16,8 +16,6 @@ using SafeTestsets
     @testset "Assembly CPU1" begin
             H    = HMatrix(M,bclt,comp)
             @test norm(H-M,2) < comp.rtol*norm(M)
-            comp = HierarchicalMatrices.PartialACA()
-            H    = HMatrix(M,bclt,comp)
             @test norm(H-M,2) < comp.rtol*norm(M)
     end
     @testset "Assembly CPUThreads" begin

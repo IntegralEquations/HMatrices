@@ -2,10 +2,10 @@ module HierarchicalMatrices
 
 using Base.Threads: @spawn
 using LinearAlgebra
-using AbstractTrees
 using ComputationalResources
+using AbstractTrees
 
-import AbstractTrees
+import AbstractTrees: children
 
 export HMatrix, LazyMatrix, Clusters
 export CPUThreads
@@ -22,5 +22,7 @@ import .Interface: rowrange, colrange, getchildren, getparent, isleaf, isroot, i
 
 include("Matrices/Matrices.jl")
 include("Algebra/Algebra.jl")
+
+include("treeutils.jl")
 
 end # module

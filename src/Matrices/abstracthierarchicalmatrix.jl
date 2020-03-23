@@ -32,8 +32,3 @@ _idx_global_to_local(I,J,H::AbstractHierarchicalMatrix) = (I,J) .- _idx_pivot(H)
 isleaf(H::AbstractHierarchicalMatrix)       = getchildren(H) === ()
 isroot(H::AbstractHierarchicalMatrix)       = getparent(H) === ()
 hasdata(H::AbstractHierarchicalMatrix)      = getdata(H) !== ()
-
-# tree utils
-AbstractTrees.children(H::AbstractHierarchicalMatrix) = getchildren(H)
-Base.eltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHierarchicalMatrix}         = T
-Base.IteratorEltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHierarchicalMatrix} = Base.HasEltype()

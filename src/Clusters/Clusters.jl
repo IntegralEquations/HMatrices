@@ -6,9 +6,11 @@ Module implementing various cluster trees and block cluster trees to be used in 
 module Clusters
 
 using LinearAlgebra: norm
-using RecipesBase: @recipe, @series
-import AbstractTrees
-import Statistics
+using Statistics: median
+using AbstractTrees
+using RecipesBase
+
+import AbstractTrees: children
 
 using  ..Parameters
 

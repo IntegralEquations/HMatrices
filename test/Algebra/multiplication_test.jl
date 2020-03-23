@@ -7,7 +7,7 @@ using SafeTestsets
     @testset "CPU1 mul!" begin
         let
             N    = 1000
-            data = rand(Geometry.Point{2,Float64},N)
+            data = rand(Clusters.Point{2,Float64},N)
             splitter   = Clusters.GeometricMinimalSplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)
             bclt = Clusters.BlockTree(clt,clt)
@@ -30,7 +30,7 @@ using SafeTestsets
     @testset "CPUThreads mul!" begin
         let
             N    = 1000
-            data = Geometry.points_on_cylinder(N,1,3/sqrt(N))
+            data = Clusters.points_on_cylinder(N,1,3/sqrt(N))
             # data = rand(Geometry.Point{2,Float64},N)
             splitter   = Clusters.CardinalitySplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)

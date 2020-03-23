@@ -68,7 +68,7 @@ function split!(cluster::ClusterTree,splitter::CardinalitySplitter)
     rec                 = container(cluster)
     index_range         = cluster.index_range
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
-    med                 = Statistics.median(data[n][imax] for n in index_range) # the median along largest axis `imax`
+    med                 = median(data[n][imax] for n in index_range) # the median along largest axis `imax`
     return _binary_split(cluster, imax, med)
 end
 
