@@ -78,7 +78,7 @@ Plot the point could and the bounding boxes at the leaves of the tree
 """
 plot(tree::ClusterTree,args...) = ()
 
-@recipe function f(tree::ClusterTree)
+@recipe function f(tree::ClusterTree,filter=(x)->isleaf(x))
     legend := false
     grid   --> false
     aspect_ratio --> :equal
@@ -89,7 +89,7 @@ plot(tree::ClusterTree,args...) = ()
         tree.data # assumes data Plots knows how  to plot  data
     end
     # plot bounding boxes
-    for leaf in AbstractTrees.Leaves(tree)
+    for leaf in Iterators.filter(filter,PostOrderDFS(tree))
         @series begin
             linestyle --> :solid
             color  --> :black
