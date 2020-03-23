@@ -2,7 +2,7 @@ using SafeTestsets
 
 @safetestset "Multiplication" begin
     using HierarchicalMatrices
-    using HierarchicalMatrices: ACA, PartialACA, hmul!
+    using HierarchicalMatrices: ACA, PartialACA
     using LinearAlgebra
     @testset "CPU1 mul!" begin
         let
@@ -11,7 +11,7 @@ using SafeTestsets
             splitter   = Clusters.GeometricMinimalSplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)
             bclt = Clusters.BlockTree(clt,clt)
-            comp = HierarchicalMatrices.PartialACA(rtol=1e-4)
+            comp = HierarchicalMatrices.PartialACA(rtol=1e-6)
             f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
             M    = LazyMatrix(f,data,data)
             H    = HMatrix(M,bclt,comp)
@@ -19,18 +19,18 @@ using SafeTestsets
             y    = similar(x)
             # 3-arg mul
             mul!(y,H,x)
-            @test norm(y-M*x) < 10*comp.rtol*norm(M)
+            @test norm(y-M*x) < comp.rtol*norm(M)
             a = 1; b=2;
             tmp = b*y + a*M*x
             # 5-arg mul
-            hmul!(y,H,x,a,b)
+            mul!(y,H,x,a,b)
             @test norm(y-tmp) < 10*comp.rtol*norm(M)
         end
     end
     @testset "CPUThreads mul!" begin
         let
             N    = 1000
-            data = Clusters.points_on_cylinder(N,1,3/sqrt(N))
+            data = HierarchicalMatrices.points_on_cylinder(N,1,3/sqrt(N))
             # data = rand(Geometry.Point{2,Float64},N)
             splitter   = Clusters.CardinalitySplitter()
             clt  = Clusters.ClusterTree(data,splitter;reorder=true)
@@ -42,12 +42,12 @@ using SafeTestsets
             x    = rand(ComplexF64,N)
             y    = zero(x)
             # 3-arg mul
-            mul!(CPUThreads(),y,H,x)
+            mul!(CPUThreads(),y,H,x,true,false)
             @test norm(y-M*x) < 10*comp.rtol*norm(M)
             # 5-arg mul
             a = 1; b=2;
             tmp = b*y + a*M*x
-            hmul!(CPUThreads(),y,H,x,a,b)
+            mul!(CPUThreads(),y,H,x,a,b)
             @test norm(y-tmp) < 10*comp.rtol*norm(M)
         end
     end
