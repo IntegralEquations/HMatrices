@@ -1,3 +1,56 @@
+abstract type AbstractRkMatrix{T} <: AbstractMatrix{T} end
+
+Base.size(rmat::AbstractRkMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
+Base.isapprox(rmat::AbstractRkMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
+Base.getindex(rmat::AbstractRkMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
+Base.getindex(rmat::AbstractRkMatrix,i::Int,::Colon)                     = conj(rmat.B)*rmat.A[i,:]
+Base.getindex(rmat::AbstractRkMatrix,::Colon,j::Int)                     = rmat.A*conj(rmat.B[j,:])
+
+function Base.getproperty(R::AbstractRkMatrix,s::Symbol)
+    if  s == :Bt
+        return adjoint(R.B)
+    elseif  s == :At
+        return adjoint(R.A)
+    else
+        return getfield(R,s)
+    end
+end
+
+rank(M::AbstractRkMatrix) = size(M.A,2)
+
+num_elements(R::AbstractRkMatrix)     = rank(R)*(sum(size(R)))
+compression_rate(R::AbstractRkMatrix) = num_elements(R) / length(R)
+
+"""
+    RkFlexMatrix{T}
+
+Similar to [`RkMatrix`](@ref), but internally stores the matrices `A` and `B` as `FlexMatrix{T}`.
+
+See also: [`RkMatrix`](@ref), [`FlexMatrix`](@ref)
+"""
+struct RkFlexMatrix{T} <: AbstractRkMatrix{T}
+    A::FlexMatrix{T}
+    B::FlexMatrix{T}
+    function RkFlexMatrix{T}(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number}
+        @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
+        m,r = size(A)
+        n  = size(B,1)
+        if  r*(m+n) >= m*n && m*n != 0
+            @debug "Inefficient RkFlexMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
+        end
+        new{T}(A,B)
+    end
+end
+RkFlexMatrix(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number} = RkFlexMatrix{T}(A,B)
+RkFlexMatrix(A::Vector{T},B::Vector{T}) where {T<:Vector}         = RkFlexMatrix(FlexMatrix(A),FlexMatrix(B))
+RkFlexMatrix{T}(undef,m,n,r) where {T} = RkFlexMatrix(FlexMatrix{T}(undef,m,r),FlexMatrix{T}(undef,n,r))
+
+function pushcross!(R::RkFlexMatrix,col,row)
+    pushcol!(R.A,col)
+    pushcol!(R.B,row)
+    return R
+end
+
 """
     RkMatrix{T}
 
@@ -5,7 +58,7 @@ Representation of a rank-`r` matrix ``M`` in the an outer product format:
 ```math M = AB^T ``` where ``A`` has size `m`×`r` and ``B`` has size `n`×`r`,
 and ``B^T`` denotes the conjugate transpose (adjoint) of ``B``.
 """
-struct RkMatrix{T} <: AbstractMatrix{T}
+struct RkMatrix{T} <: AbstractRkMatrix{T}
     A::Matrix{T}
     B::Matrix{T}
     function RkMatrix{T}(A::Matrix,B::Matrix) where {T<:Number}
@@ -18,8 +71,9 @@ struct RkMatrix{T} <: AbstractMatrix{T}
         new{T}(A,B)
     end
 end
-RkMatrix(A::Matrix{T},Bt::Matrix{T}) where {T} = RkMatrix{T}(A,Bt)
+RkMatrix(A::Matrix{T},B::Matrix{T}) where {T} = RkMatrix{T}(A,B)
 RkMatrix(A,B) = RkMatrix(promote(A,B)...)
+RkMatrix(R::RkFlexMatrix) = RkMatrix(Matrix(R.A),Matrix(R.B))
 
 function rkmatrix(F::LinearAlgebra.SVD)
     A  = F.U*LinearAlgebra.Diagonal(F.S)
@@ -31,39 +85,6 @@ function rkmatrix!(F::LinearAlgebra.SVD)
     A  = rmul!(F.U,LinearAlgebra.Diagonal(F.S))
     B  = F.V
     return RkMatrix(A,B)
-end
-
-function RkMatrix(A::Vector{V1},B::Vector{V2}) where {V1<: AbstractVector, V2 <: AbstractVector}
-    T1   = eltype(V1)
-    T2   = eltype(V2)
-    T   = promote_type(T1,T2)
-    r   = length(A)
-    n   = length(first(A))
-    m   = length(first(B))
-    Ap  = Matrix{T}(undef,n,r)
-    Bp = Matrix{T}(undef,m,r)
-    for n=1:r
-        copyto!(view(Ap,:,n),A[n])
-        copyto!(view(Bp,:,n),B[n])
-    end
-    RkMatrix(Ap,Bp)
-end
-
-Base.size(rmat::RkMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
-Base.size(rmat::RkMatrix,i)                                      = size(rmat)[i]
-Base.length(rmat::RkMatrix)                                      = prod(size(rmat))
-Base.isapprox(rmat::RkMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
-Base.getindex(rmat::RkMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
-Base.getindex(rmat::RkMatrix,I,J)                                = RkMatrix(rmat.A[I,:],rmat.B[J,:])
-
-function Base.getproperty(R::RkMatrix,s::Symbol)
-    if  s == :Bt
-        return adjoint(R.B)
-    elseif  s == :At
-        return adjoint(R.A)
-    else
-        return getfield(R,s)
-    end
 end
 
 function Base.hcat(M1::RkMatrix{T},M2::RkMatrix{T}) where {T}
@@ -98,9 +119,3 @@ Base.rand(::Type{RkMatrix},m::Int,n::Int,r::Int) = rand(RkMatrix{Float64},m,n,r)
 Base.copy(R::RkMatrix) = RkMatrix(copy(R.A),copy(R.B))
 
 Matrix(R::RkMatrix) = R.A*R.Bt
-
-
-num_elements(R::RkMatrix)        = size(R.A,2)*(sum(size(R)))
-compression_rate(R::RkMatrix)    = num_elements(R) / prod(size(R))
-
-LinearAlgebra.rank(M::RkMatrix) = size(M.A,2)

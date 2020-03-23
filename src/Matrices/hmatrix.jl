@@ -14,11 +14,27 @@ mutable struct HMatrix{S,F,T} <: AbstractHierarchicalMatrix{T}
 end
 
 HMatrix(args...;kwargs...) = HMatrix(CPU1(),args...;kwargs...)
-function HMatrix(resource::AbstractCPU,K,block,comp)
+
+"""
+    HMatrix([resource=CPU1()],K,blocktree,comp)
+
+Main constructor for hierarchical matrix, where `K` represents the matrix to be
+approximated, `blocktree` encondes the tree structure, and `comp` is a
+function/functor which can compress blocks.
+
+It is assumed that `K` supports `getindex(K,i,j)`, that `blocktree` has methods
+`getchildren(blocktree)`, `isadmissible(blocktree)`,
+`rowrange(blocktree)->UnitRange`, and `colrange(blocktree)->UnitRange` , and
+that comp can be called as `comp(K,irange::UnitRange,jrange::UnitRange)` to
+produce a compressed version of `K[irange,jrange]`.
+
+An optional first argument can be passed to how to perform the computation (e.g. CPU1, CPUThreads).
+"""
+function HMatrix(resource::AbstractCPU,K,blocktree,comp)
     T = eltype(K)
-    S = Base.promote_op(comp,typeof(K),typeof(rowrange(block)),typeof(colrange(block)))
+    S = Base.promote_op(comp,typeof(K),typeof(rowrange(blocktree)),typeof(colrange(blocktree)))
     F = Matrix{T}
-    HMatrix{S,F,T}(resource,K,block,comp)
+    HMatrix{S,F,T}(resource,K,blocktree,comp)
 end
 
 function HMatrix{S,F,T}(resource::AbstractCPU,K,block,comp) where {S,F,T}
@@ -56,26 +72,24 @@ function assemble!(resource::CPU1,hmat,K,comp)
     return hmat
 end
 
-# function assemble!(::CPUThreads,hmat,K,comp)
-#     @sync for leaf in AbstractTrees.Leaves(hmat)
-#         if isadmissible(leaf)
-#             @spawn begin
-#                 data = comp(K,rowrange(leaf),colrange(leaf))
-#                 setdata!(leaf,data)
-#             end
-#         else
-#             @spawn begin
-#                 data = [K[i,j] for i in rowrange(leaf), j in colrange(leaf)]
-#                 setdata!(leaf,data)
-#             end
-#         end
-#     end
-#     return hmat
-# end
+################################################################################
+## Threaded assemble of hmat
+################################################################################
+# TODO: implement a filter to control the granularity of the threaded assemble
+Base.@kwdef struct ThreadedAssembleOpts{T}
+    filter::T= (x)->isleaf(x)
+end
 
-function assemble!(::CPUThreads,hmat::T,K,comp) where {T}
-    @sync for leaf in Leaves(hmat)
-        @spawn assemble!(CPU1(),leaf,K,comp)
+function assemble!(resources::CPUThreads,hmat,K,comp)
+    settings = resources.settings
+    if settings === nothing
+        @sync for node in Leaves(hmat)
+            @spawn assemble!(CPU1(),node,K,comp)
+        end
+    else
+        @sync for node in Iterators.filter(settings.filter,PostOrderDFS(hmat))
+            @spawn assemble!(CPU1(),node,K,comp)
+        end
     end
     return hmat
 end

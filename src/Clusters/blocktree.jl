@@ -41,7 +41,7 @@ Construct a `BlockTree`, and assign to each node a value `admissible` depending 
 
 The following signature: `admissible_fun(::BlockTree) --> Bool`
 """
-function BlockTree(row_cluster::ClusterTree, col_cluster::ClusterTree, adm_fun=AdmissibilityStandard())
+function BlockTree(row_cluster::ClusterTree, col_cluster::ClusterTree, adm_fun=StrongAdmissibilityStd())
     #build root
     root        = BlockTree(row_cluster,col_cluster,false,(),())
     # recurse
@@ -73,7 +73,7 @@ end
 ################################################################################
  ## PLOTTING
 ################################################################################
-@recipe function f(bclt::BlockTree)
+@recipe function f(tree::BlockTree,filter=(x)->isleaf(x))
     legend --> false
     grid   --> false
     # aspect_ratio --> :equal
@@ -82,7 +82,7 @@ end
     linecolor  --> :black
     # title  := "compression rate = $(compression_rate(hmat))"
     # all leaves
-    for block in AbstractTrees.Leaves(bclt)
+    for block in Iterators.filter(filter,PostOrderDFS(tree))
         @series begin
             if isadmissible(block)
                 fillcolor  := :blue

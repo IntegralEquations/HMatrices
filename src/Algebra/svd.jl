@@ -4,7 +4,7 @@
 Compute the singular value decomposition of an `RkMatrix` by first doing a `qr`
 of `R.A` and `R.B` followed by an `svd` of ``R_A*(R_{B})^T``
 """
-function LinearAlgebra.svd(M::RkMatrix)
+function svd(M::RkMatrix)
     r      = rank(M)
     # treat weird case where it would be most efficient to convert first to a full matrix
     r > min(size(M)...) && return svd(Matrix(M))
@@ -19,7 +19,7 @@ function LinearAlgebra.svd(M::RkMatrix)
     return LinearAlgebra.SVD(U,F.S,Vt) #create the SVD structure
 end
 
-function LinearAlgebra.svd!(M::RkMatrix)
+function svd!(M::RkMatrix)
     r      = rank(M)
     QA, RA = LinearAlgebra.qr!(M.A)
     QB, RB = LinearAlgebra.qr!(M.B)

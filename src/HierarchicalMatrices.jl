@@ -4,8 +4,11 @@ using Base.Threads: @spawn
 using LinearAlgebra
 using ComputationalResources
 using AbstractTrees
+using RecipesBase
 
 import AbstractTrees: children
+
+import LinearAlgebra: rank, mul!, svd, svd!, norm
 
 export HMatrix, LazyMatrix, Clusters
 export CPUThreads
@@ -20,9 +23,9 @@ using .Parameters
 
 import .Interface: rowrange, colrange, getchildren, getparent, isleaf, isroot, isadmissible
 
+const Maybe{T}  = Union{Tuple{},T}
+
 include("Matrices/Matrices.jl")
 include("Algebra/Algebra.jl")
-
-include("treeutils.jl")
 
 end # module
