@@ -56,7 +56,7 @@ Base.IteratorEltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHierarchicalMat
 ################################################################################
 ## Plot recipes
 ################################################################################
-@recipe function f(hmat::HMatrix)
+@recipe function f(hmat::AbstractHierarchicalMatrix)
     legend --> false
     grid   --> false
     # aspect_ratio --> :equal
