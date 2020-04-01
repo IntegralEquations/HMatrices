@@ -15,6 +15,9 @@ using SafeTestsets
             splitter   = Clusters.CardinalitySplitter(nmax=32)
             clt = ClusterTree(data,splitter;reorder=false)
             @test clt.data == data[clt.perm]
+            splitter   = Clusters.QuadOctSplitter(nmax=32)
+            clt = ClusterTree(data,splitter;reorder=false)
+            @test clt.data == data[clt.perm]
         end
     end
 
@@ -28,6 +31,9 @@ using SafeTestsets
             clt = ClusterTree(data,splitter;reorder=false)
             @test clt.data == data[clt.perm]
             splitter   = Clusters.CardinalitySplitter(nmax=32)
+            clt = ClusterTree(data,splitter;reorder=false)
+            @test clt.data == data[clt.perm]
+            splitter   = Clusters.QuadOctSplitter(nmax=32)
             clt = ClusterTree(data,splitter;reorder=false)
             @test clt.data == data[clt.perm]
         end

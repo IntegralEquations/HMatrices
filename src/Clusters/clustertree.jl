@@ -29,6 +29,8 @@ isroot(clt::ClusterTree) = getparent(clt) === ()
 diameter(node::ClusterTree)                         = diameter(container(node))
 distance(node1::ClusterTree,node2::ClusterTree)     = distance(container(node1), container(node2))
 
+dimension(clt::ClusterTree) = container(clt) |> dimension
+
 Base.length(node::ClusterTree) = length(node.index_range)
 Base.range(node::ClusterTree)  = node.index_range
 

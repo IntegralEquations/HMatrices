@@ -4,6 +4,10 @@ abstract type AbstractSplitter end
     nmax::Int=Parameters.nmax
 end
 
+@Base.kwdef struct QuadOctSplitter <: AbstractSplitter
+    nmax::Int=Parameters.nmax
+end
+
 @Base.kwdef struct GeometricMinimalSplitter <: AbstractSplitter
     nmax::Int=Parameters.nmax
 end
@@ -55,6 +59,21 @@ function split!(cluster::ClusterTree,splitter::GeometricSplitter)
     rec  = container(cluster)
     wmax, imax          = findmax(rec.high_corner - rec.low_corner)
     return _binary_split(cluster, imax, rec.low_corner[imax]+wmax/2, false)
+end
+
+function split!(cluster::ClusterTree,splitter::QuadOctSplitter)
+    d    = dimension(cluster)
+    clusters = [cluster]
+    for i=1:d
+        rec  = container(cluster)
+        pos = (rec.high_corner[i] + rec.low_corner[i])/2
+        nel = length(clusters)#2^(i-1)
+        for k=1:nel
+            clt = popfirst!(clusters)
+            append!(clusters,_binary_split(clt,i,pos, false))
+        end
+    end
+    return clusters
 end
 
 function split!(cluster::ClusterTree,splitter::GeometricMinimalSplitter)
