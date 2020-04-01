@@ -5,6 +5,7 @@ using LinearAlgebra
 using ComputationalResources
 using AbstractTrees
 using RecipesBase
+using UnsafeArrays
 
 import AbstractTrees: children
 

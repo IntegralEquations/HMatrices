@@ -4,8 +4,8 @@ function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
     (i ∈ rowrange(H)) && (j ∈ colrange(H)) || throw(BoundsError(H,(i,j)))
     out = zero(eltype(H))
     if hasdata(H)
-        il,jl = _idx_global_to_local(i,j,H)
-        out += getdata(H)[il,jl]
+        il,jl = idx_global_to_local(i,j,H)
+        out  += getdata(H)[il,jl]
     end
     for child in getchildren(H)
         if (i ∈ rowrange(child)) && (j ∈ colrange(child))
@@ -28,11 +28,22 @@ getdata(H::AbstractHMatrix)          = H.data
 setdata!(H::AbstractHMatrix,data)    = (H.data     = data)
 isadmissible(H::AbstractHMatrix)     = H.admissible
 
-_idx_pivot(H::AbstractHMatrix)               = rowrange(H).start, colrange(H).start
-_idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- _idx_pivot(H) .+ 1
+idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- pivot(H) .+ 1
 isleaf(H::AbstractHMatrix)                   = getchildren(H) === ()
 isroot(H::AbstractHMatrix)                   = getparent(H) === ()
 hasdata(H::AbstractHMatrix)                  = getdata(H) !== ()
+
+function Matrix(H::AbstractHMatrix)
+    M = zeros(eltype(H),size(H)...)
+    shift = pivot(H) .- 1
+    for block in PreOrderDFS(H)
+        hasdata(block) || continue
+        irange = rowrange(block) .- shift[1]
+        jrange = colrange(block) .- shift[2]
+        M[irange,jrange] += Matrix(block.data)
+    end
+    return M
+end
 
 function compression_rate(H::AbstractHMatrix)
     c = 0 # stored entries

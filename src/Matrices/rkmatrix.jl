@@ -3,8 +3,13 @@ abstract type AbstractRkMatrix{T} <: AbstractMatrix{T} end
 Base.size(rmat::AbstractRkMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
 Base.isapprox(rmat::AbstractRkMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
 Base.getindex(rmat::AbstractRkMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
-Base.getindex(rmat::AbstractRkMatrix,i::Int,::Colon)                     = conj(rmat.B)*rmat.A[i,:]
-Base.getindex(rmat::AbstractRkMatrix,::Colon,j::Int)                     = rmat.A*conj(rmat.B[j,:])
+
+Base.getindex(rmat::AbstractRkMatrix,i::Int,::Colon) = getrow(rmat,i)
+Base.getindex(rmat::AbstractRkMatrix,::Colon,j::Int) = getcol(rmat,j)
+getcol(R,j)                                          = getcol!(Vector{eltype(R)}(undef,size(R,1)),R,j)
+getrow(R,i)                                          = getrow!(Vector{eltype(R)}(undef,size(R,2)),R,i)
+getcol!(col,R::AbstractRkMatrix,j::Int)              = mul!(col,R.A,uview(adjoint(R.B),:,j))
+getrow!(row,R::AbstractMatrix,i)                     = mul!(row,R.B,uview(R.A,i,:))
 
 function Base.getproperty(R::AbstractRkMatrix,s::Symbol)
     if  s == :Bt
