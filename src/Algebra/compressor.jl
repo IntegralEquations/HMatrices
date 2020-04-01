@@ -38,7 +38,7 @@ function _aca_full!(M, atol, rmax, rtol, norm)
             er = norm(M) # exact error
         end
     end
-    return R
+    return RkMatrix(R)
 end
 
 """
@@ -96,7 +96,7 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
             i        = _nextrow(a,I)
         end
     end
-    return R
+    return RkMatrix(R)
 end
 
 function _nextcol(col,J)

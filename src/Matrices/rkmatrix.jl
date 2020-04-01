@@ -63,7 +63,7 @@ Representation of a rank-`r` matrix ``M`` in the an outer product format:
 ```math M = AB^T ``` where ``A`` has size `m`×`r` and ``B`` has size `n`×`r`,
 and ``B^T`` denotes the conjugate transpose (adjoint) of ``B``.
 """
-struct RkMatrix{T} <: AbstractRkMatrix{T}
+mutable struct RkMatrix{T} <: AbstractRkMatrix{T}
     A::Matrix{T}
     B::Matrix{T}
     function RkMatrix{T}(A::Matrix,B::Matrix) where {T<:Number}
@@ -117,6 +117,21 @@ function Base.vcat(M1::RkMatrix{T},M2::RkMatrix{T}) where {T}
     B    = hcat(M1.B,M2.B)
     return RkMatrix(A,B)
 end
+
+function RkMatrix(M::Matrix)
+    T = eltype(M)
+    m,n = size(M)
+    if m > n
+        B = Matrix{T}(I,n,n)
+        R = RkMatrix(M,B)
+    else
+        A  = Matrix{T}(I,m,m)
+        B = adjoint(M) |> Matrix
+        R = RkMatrix(A,B)
+    end
+    return R
+end
+
 
 Base.rand(::Type{RkMatrix{T}},m::Int,n::Int,r::Int) where {T} = RkMatrix(rand(T,m,r),rand(T,n,r)) #useful for testing
 Base.rand(::Type{RkMatrix},m::Int,n::Int,r::Int) = rand(RkMatrix{Float64},m,n,r)

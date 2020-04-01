@@ -55,6 +55,24 @@ function HMatrix{S,F,T}(block::BlockTree) where {S,F,T}
     return hmat
 end
 
+function RkMatrix(H::HMatrix)
+    children = getchildren(H)
+    if isleaf(H)
+        hasdata(H) && (data = getdata(H))
+        if data isa RkMatrix
+            return data
+        else
+            return RkMatrix(data)
+        end
+    else
+        B = [RkMatrix(child) for child in getchildren(H)]
+        tmp1 = hcat(B[1,1],B[1,2])
+        tmp2 = hcat(B[2,1],B[2,2])
+        tmp3 = vcat(tmp1,tmp2)
+        return tmp3
+    end
+end
+
 function assemble!(resource::CPU1,hmat,K,comp)
     if isleaf(hmat)
         if isadmissible(hmat)
