@@ -6,7 +6,7 @@ function mul!(C::AbstractVector,Rk::RkType,F::AbstractVector,a::Number,b::Number
 end
 
 # CPU1
-function mul!(resources::CPU1,C::AbstractVector,H::AbstractHierarchicalMatrix,F::AbstractVector,a::Number,b::Number)
+function mul!(resources::CPU1,C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number=true,b::Number=false)
     b==1 || rmul!(C,b)
     for leaf in Leaves(H)
         _multiply_leaf!(C,leaf,F,a,1)
@@ -15,7 +15,7 @@ function mul!(resources::CPU1,C::AbstractVector,H::AbstractHierarchicalMatrix,F:
 end
 
 # CPUThreads
-function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHierarchicalMatrix,F::AbstractVector,a::Number=true,b::Number=false)
+function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number=true,b::Number=false)
     rmul!(C,b)
     nthreads = Threads.nthreads()
     y        = [zero(C) for _ = 1:nthreads]
@@ -33,7 +33,7 @@ function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHierarchicalMat
 end
 
 # default
-mul!(C::AbstractVector,H::AbstractHierarchicalMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPU1(),C,H,F,a,b)
+mul!(C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPU1(),C,H,F,a,b)
 
 # 
 function _multiply_leaf!(C,H,F,a,b)
@@ -48,7 +48,7 @@ end
 
 # NOTE: the commented code below avoids making copies at the cost of locking mutex to avoid race conditions. 
 # TODO: decide on the best one.
-# function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHierarchicalMatrix,F::AbstractVector,a::Number=true,b::Number=false)
+# function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number=true,b::Number=false)
 #     b==1 || rmul!(C,b)
 #     if isleaf(H)
 #         _multiply_leaf!(C,H,F,a,1)

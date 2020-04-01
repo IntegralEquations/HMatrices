@@ -1,4 +1,4 @@
-mutable struct HMatrix{S,F,T} <: AbstractHierarchicalMatrix{T}
+mutable struct HMatrix{S,F,T} <: AbstractHMatrix{T}
     rowrange::UnitRange{Int}
     colrange::UnitRange{Int}
     admissible::Bool

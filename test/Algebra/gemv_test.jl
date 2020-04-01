@@ -20,11 +20,14 @@ using SafeTestsets
             # 3-arg mul
             mul!(y,H,x)
             @test norm(y-M*x) < comp.rtol*norm(M)
+            # short case
+            @test norm(H*x-M*x) < comp.rtol*norm(M)
             a = 1; b=2;
             tmp = b*y + a*M*x
             # 5-arg mul
             mul!(y,H,x,a,b)
-            @test norm(y-tmp) < 10*comp.rtol*norm(M)
+            @test norm(y-tmp) < comp.rtol*norm(M)
+
         end
     end
     @testset "CPUThreads mul!" begin
