@@ -120,6 +120,7 @@ end
 
 Base.zero(T::Type{<:RkMatrix},m,n) = RkMatrix(zeros(eltype(T),m,1),zeros(eltype(T),n,1))
 Base.zero(R::RkMatrix,m,n)         = zero(typeof(R),m,n)
+Base.zero(R::RkMatrix)             = zero(typeof(R),size(R)...)
 
 function RkMatrix(M::Matrix)
     T = eltype(M)

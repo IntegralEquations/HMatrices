@@ -17,6 +17,13 @@ function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
 end
 
 Base.size(H::AbstractHMatrix) = length(rowrange(H)), length(colrange(H))
+Base.axes(H::AbstractHMatrix) = rowrange(H),colrange(H)
+function Base.similar(H::AbstractHMatrix) 
+    T = eltype(H)
+    similar(Matrix{T},size(H))
+end
+# FIXME: the method below is probably not OK
+Base.similar(A::T,t::Tuple{<:UnitRange,<:UnitRange}) where {T} = similar(A,length.(t))
 
 rowrange(H::AbstractHMatrix)         = H.rowrange
 colrange(H::AbstractHMatrix)         = H.colrange
@@ -36,6 +43,21 @@ idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- pivot(H) .+ 1
 isleaf(H::AbstractHMatrix)                   = getchildren(H) === ()
 isroot(H::AbstractHMatrix)                   = getparent(H) === ()
 hasdata(H::AbstractHMatrix)                  = getdata(H) !== ()
+
+function Base.zero(H::AbstractHMatrix)
+    T = typeof(H)
+    if !hasdata(H)
+        H0 = T(rowrange(H),colrange(H),isadmissible(H),(),(),())
+    else
+        H0 = T(rowrange(H),colrange(H),isadmissible(H),zero(getdata(H)),(),())
+    end
+    if !isleaf(H)
+        children = zero.(getchildren(H))
+        setchildren!(H0,children)
+        map(x->setparent!(x,H0),children)
+    end
+    return H0
+end
 
 function Matrix(H::AbstractHMatrix)
     M = zeros(eltype(H),size(H)...)
