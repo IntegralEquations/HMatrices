@@ -118,6 +118,9 @@ function Base.vcat(M1::RkMatrix{T},M2::RkMatrix{T}) where {T}
     return RkMatrix(A,B)
 end
 
+Base.zero(T::Type{<:RkMatrix},m,n) = RkMatrix(zeros(eltype(T),m,1),zeros(eltype(T),n,1))
+Base.zero(R::RkMatrix,m,n)         = zero(typeof(R),m,n)
+
 function RkMatrix(M::Matrix)
     T = eltype(M)
     m,n = size(M)

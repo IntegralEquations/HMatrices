@@ -1,6 +1,7 @@
 abstract type  AbstractHMatrix{T} <: AbstractMatrix{T} end
 
 function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
+    @debug "using `getindex(H::AbstractHMatrix,i::Int,j::Int)`"
     (i ∈ rowrange(H)) && (j ∈ colrange(H)) || throw(BoundsError(H,(i,j)))
     out = zero(eltype(H))
     if hasdata(H)
@@ -27,6 +28,9 @@ setparent!(H::AbstractHMatrix,par)   = (H.parent   = par)
 getdata(H::AbstractHMatrix)          = H.data
 setdata!(H::AbstractHMatrix,data)    = (H.data     = data)
 isadmissible(H::AbstractHMatrix)     = H.admissible
+
+blocksize(H::AbstractHMatrix,args...) = size(getchildren(H),args...)
+getblock(H::AbstractHMatrix,args...)  = getindex(getchildren(H),args...)
 
 idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- pivot(H) .+ 1
 isleaf(H::AbstractHMatrix)                   = getchildren(H) === ()
@@ -62,6 +66,26 @@ end
 children(H::AbstractHMatrix) = getchildren(H)
 Base.eltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHMatrix}         = T
 Base.IteratorEltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHMatrix} = Base.HasEltype()
+
+function Base.show(io::IO,hmat::AbstractHMatrix)
+    print(io,"hmatrix with range ($(rowrange(hmat))) × ($(colrange(hmat)))")
+end
+
+################################################################################
+## adjoint
+################################################################################
+const AdjHMatrix = Adjoint{<:Any,<:AbstractHMatrix}
+hasdata(adjH::AdjHMatrix) = hasdata(adjH.parent)
+getdata(adjH::AdjHMatrix) = adjoint(getdata(adjH.parent))
+getchildren(adjH::AdjHMatrix) = isleaf(adjH.parent) ? () : adjoint(getchildren(adjH.parent)) 
+pivot(adjH::AdjHMatrix) = reverse(pivot(adjH.parent))
+rowrange(adjH::AdjHMatrix) = colrange(adjH.parent)
+colrange(adjH::AdjHMatrix) = rowrange(adjH.parent)
+isleaf(adjH::AdjHMatrix) = isleaf(adjH.parent)
+
+function Base.show(io::IO,hmat::AdjHMatrix)
+    print(io,"hmatrix with range ($(rowrange(hmat))) × ($(colrange(hmat)))")
+end
 
 ################################################################################
 ## Plot recipes
