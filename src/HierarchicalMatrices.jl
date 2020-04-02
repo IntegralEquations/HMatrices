@@ -9,8 +9,8 @@ using UnsafeArrays
 
 import AbstractTrees: children
 
-import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!
-import Base: +, -, *
+import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, inv!
+import Base: +, -, *, inv
 
 export HMatrix, LazyMatrix, Clusters
 export CPUThreads
