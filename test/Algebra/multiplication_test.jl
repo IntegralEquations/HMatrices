@@ -7,7 +7,7 @@ using SafeTestsets
 
     N,r    = 500, 3
     T      = ComplexF64
-    data = rand(Clusters.Point{2,Float64},N)
+    data   = HierarchicalMatrices.points_on_cylinder(N,1,3/sqrt(N))
     splitter   = Clusters.GeometricMinimalSplitter()
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(100)
@@ -87,150 +87,186 @@ using SafeTestsets
                 # @test tmp ≈ _H*_H
             end
         end
-    # @testset "mul!" begin
-    #     #cases whose target is a full matrix
-        @testset "1.1.2" begin
-            exact = b*_M + a*_M*_R
-            tmp   = copy(M)
-            @test mul!(tmp,M,R,a,b) ≈ exact
-        end
-        @testset "1.1.3" begin
-            exact = b*_M + a*_M*_H
-            tmp   = copy(M)
-            @test mul!(tmp,M,H,a,b) ≈ exact
-        end
-        @testset "1.2.1" begin
-            exact = b*_M + a*_R*_M
-            tmp   = copy(M)
-            @test mul!(tmp,R,M,a,b) ≈ exact
-            exact = b*_M + a*adjoint(_R)*_M
-            tmp   = copy(M)
-            @test mul!(tmp,adjoint(R),M,a,b) ≈ exact
-        end
-        @testset "1.2.2" begin
-            exact = b*_M + a*_R*_R
-            tmp   = copy(M)
-            @test mul!(tmp,R,R,a,b) ≈ exact
-        end
-        @testset "1.2.3" begin
-            exact = b*_M + a*_R*_H
-            tmp   = copy(M)
-            @test mul!(tmp,R,H,a,b) ≈ exact
-        end
-        @testset "1.3.1" begin
-            exact = b*_M + a*_H*_M
-            tmp   = copy(M)
-            @test mul!(tmp,H,M,a,b) ≈ exact
-            exact = b*_M + a*adjoint(_H)*_M
-            tmp   = copy(M)
-            @test mul!(tmp,adjoint(H),M,a,b) ≈ exact
-        end
-        @testset "1.3.2" begin
-            exact = b*_M + a*_H*_R
-            tmp   = copy(M)
-            @test mul!(tmp,H,R,a,b) ≈ exact
-        end
-        @testset "1.3.3" begin
-            exact = b*_M + a*_H*_H
-            tmp   = copy(M)
-            @test mul!(tmp,H,H,a,b) ≈ exact
-        end
-    #     #cases whose target is a sparse matrix
-        @testset "2.1.1" begin
-            exact = b*_R + a*_M*_M
-            tmp   = copy(R)
-            @test mul!(tmp,M,M,a,b) ≈ exact
-        end
-        @testset "2.1.2" begin
-            exact = b*_R + a*_M*_R
-            tmp   = deepcopy(R)
-            @test mul!(tmp,M,R,a,b) ≈ exact
-        end
-        @testset "2.1.3" begin
-            exact = b*_R + a*_M*_H
-            tmp   = deepcopy(R)
-            @test mul!(tmp,M,H,a,b) ≈ exact
-        end
-        @testset "2.2.1" begin
-            exact = b*_R + a*_R*_M
-            tmp   = deepcopy(R)
-            @test mul!(tmp,R,M,a,b) ≈ exact
-        end
-        @testset "2.2.2" begin
-            exact = b*_R + a*_R*_R
-            tmp   = deepcopy(R)
-            @test mul!(tmp,R,R,a,b) ≈ exact
-        end
-        @testset "2.2.3" begin
-            exact = b*_R + a*_R*_H
-            tmp   = deepcopy(R)
-            @test mul!(tmp,R,H,a,b) ≈ exact
-        end
-        @testset "2.3.1" begin
-            exact = b*_R + a*_H*_M
-            tmp   = deepcopy(R)
-            @test mul!(tmp,H,M,a,b) ≈ exact
-        end
-        @testset "2.3.2" begin
-            exact = b*_R + a*_H*_R
-            tmp   = deepcopy(R)
-            @test mul!(tmp,H,R,a,b) ≈ exact
-        end
-        @testset "2.3.2" begin
-            exact = b*_R + a*_H*_R
-            tmp   = deepcopy(R)
-            @test mul!(tmp,H,R,a,b) ≈ exact
-        end
-        @testset "2.3.3" begin
-            exact = b*_R + a*_H*_H
-            tmp   = deepcopy(R)
-            @test mul!(tmp,H,H,a,b) ≈ exact
-        end
-    #     #cases where target is a hierarchical matrix
-        @testset "3.1.1" begin
-            exact = b*_H + a*_M*_M
-            tmp   = deepcopy(H)
-            @test mul!(tmp,M,M,a,b) ≈ exact
-        end
-        @testset "3.1.2" begin
-            exact = b*_H + a*_M*_R
-            tmp   = deepcopy(H)
-            @test mul!(tmp,M,R,a,b) ≈ exact
-        end
-        @testset "3.1.3" begin
-            exact = b*_H + a*_M*_H
-            tmp   = deepcopy(H)
-            @test mul!(tmp,M,H,a,b) ≈ exact
-        end
-        @testset "3.2.1" begin
-            exact = b*_H + a*_R*_M
-            tmp   = deepcopy(H)
-            @test mul!(tmp,R,M,a,b) ≈ exact
-        end
-        @testset "3.2.2" begin
-            exact = b*_H + a*_R*_R
-            tmp   = deepcopy(H)
-            @test mul!(tmp,R,R,a,b) ≈ exact
-        end
-        @testset "3.2.3" begin
-            exact = b*_H + a*_R*_H
-            tmp   = deepcopy(H)
-            @test mul!(tmp,R,H,a,b) ≈ exact
-        end
-        @testset "3.3.1" begin
-            exact = b*_H + a*_H*_M
-            tmp   = deepcopy(H)
-            @test mul!(tmp,H,M,a,b) ≈ exact
-        end
-        @testset "3.3.2" begin
-            exact = b*_H + a*_H*_R
-            tmp   = deepcopy(H)
-            @test mul!(tmp,H,R,a,b) ≈ exact
-        end
-        @testset "3.3.3" begin
-            exact = b*_H + a*_H*_H
-            tmp   = deepcopy(H)
-            @test mul!(tmp,H,H,a,b) ≈ exact
-        end
+        
+        @testset "mul!" begin
+            #cases whose target is a full matrix
+            @testset "1.1.2" begin
+                exact = b*_M + a*_M*_R
+                tmp   = copy(M)
+                @test mul!(tmp,M,R,a,b) ≈ exact
+            end
+            @testset "1.1.3" begin
+                exact = b*_M + a*_M*_H
+                tmp   = copy(M)
+                @test mul!(tmp,M,H,a,b) ≈ exact
+            end
+            @testset "1.2.1" begin
+                exact = b*_M + a*_R*_M
+                tmp   = copy(M)
+                @test mul!(tmp,R,M,a,b) ≈ exact
+                exact = b*_M + a*adjoint(_R)*_M
+                tmp   = copy(M)
+                @test mul!(tmp,adjoint(R),M,a,b) ≈ exact
+            end
+            @testset "1.2.2" begin
+                exact = b*_M + a*_R*_R
+                tmp   = copy(M)
+                @test mul!(tmp,R,R,a,b) ≈ exact
+            end
+            @testset "1.2.3" begin
+                exact = b*_M + a*_R*_H
+                tmp   = copy(M)
+                @test mul!(tmp,R,H,a,b) ≈ exact
+            end
+            @testset "1.3.1" begin
+                exact = b*_M + a*_H*_M
+                tmp   = copy(M)
+                @test mul!(tmp,H,M,a,b) ≈ exact
+                exact = b*_M + a*adjoint(_H)*_M
+                tmp   = copy(M)
+                @test mul!(tmp,adjoint(H),M,a,b) ≈ exact
+            end
+            @testset "1.3.2" begin
+                exact = b*_M + a*_H*_R
+                tmp   = copy(M)
+                @test mul!(tmp,H,R,a,b) ≈ exact
+            end
+            @testset "1.3.3" begin
+                exact = b*_M + a*_H*_H
+                tmp   = copy(M)
+                @test mul!(tmp,H,H,a,b) ≈ exact
+            end
+            #cases whose target is a sparse matrix
+            @testset "2.1.1" begin
+                exact = b*_R + a*_M*_M
+                tmp   = copy(R)
+                @test mul!(tmp,M,M,a,b) ≈ exact
+            end
+            @testset "2.1.2" begin
+                exact = b*_R + a*_M*_R
+                tmp   = deepcopy(R)
+                @test mul!(tmp,M,R,a,b) ≈ exact
+            end
+            @testset "2.1.3" begin
+                exact = b*_R + a*_M*_H
+                tmp   = deepcopy(R)
+                @test mul!(tmp,M,H,a,b) ≈ exact
+            end
+            @testset "2.2.1" begin
+                exact = b*_R + a*_R*_M
+                tmp   = deepcopy(R)
+                @test mul!(tmp,R,M,a,b) ≈ exact
+            end
+            @testset "2.2.2" begin
+                exact = b*_R + a*_R*_R
+                tmp   = deepcopy(R)
+                @test mul!(tmp,R,R,a,b) ≈ exact
+            end
+            @testset "2.2.3" begin
+                exact = b*_R + a*_R*_H
+                tmp   = deepcopy(R)
+                @test mul!(tmp,R,H,a,b) ≈ exact
+            end
+            @testset "2.3.1" begin
+                exact = b*_R + a*_H*_M
+                tmp   = deepcopy(R)
+                @test mul!(tmp,H,M,a,b) ≈ exact
+            end
+            @testset "2.3.2" begin
+                exact = b*_R + a*_H*_R
+                tmp   = deepcopy(R)
+                @test mul!(tmp,H,R,a,b) ≈ exact
+            end
+            @testset "2.3.2" begin
+                exact = b*_R + a*_H*_R
+                tmp   = deepcopy(R)
+                @test mul!(tmp,H,R,a,b) ≈ exact
+            end
+            @testset "2.3.3" begin
+                exact = b*_R + a*_H*_H
+                tmp   = deepcopy(R)
+                @test mul!(tmp,H,H,a,b) ≈ exact
+            end
+            #cases where target is a hierarchical matrix
+            @testset "3.1.1" begin
+                exact = b*_H + a*_M*_M
+                tmp   = deepcopy(H)
+                @test mul!(tmp,M,M,a,b) ≈ exact
+            end
+            @testset "3.1.2" begin
+                exact = b*_H + a*_M*_R
+                tmp   = deepcopy(H)
+                @test mul!(tmp,M,R,a,b) ≈ exact
+            end
+            @testset "3.1.3" begin
+                exact = b*_H + a*_M*_H
+                tmp   = deepcopy(H)
+                @test mul!(tmp,M,H,a,b) ≈ exact
+            end
+            @testset "3.2.1" begin
+                exact = b*_H + a*_R*_M
+                tmp   = deepcopy(H)
+                @test mul!(tmp,R,M,a,b) ≈ exact
+            end
+            @testset "3.2.2" begin
+                exact = b*_H + a*_R*_R
+                tmp   = deepcopy(H)
+                @test mul!(tmp,R,R,a,b) ≈ exact
+            end
+            @testset "3.2.3" begin
+                exact = b*_H + a*_R*_H
+                tmp   = deepcopy(H)
+                @test mul!(tmp,R,H,a,b) ≈ exact
+            end
+            @testset "3.3.1" begin
+                exact = b*_H + a*_H*_M
+                tmp   = deepcopy(H)
+                @test mul!(tmp,H,M,a,b) ≈ exact
+            end
+            @testset "3.3.2" begin
+                exact = b*_H + a*_H*_R
+                tmp   = deepcopy(H)
+                @test mul!(tmp,H,R,a,b) ≈ exact
+            end
+            @testset "3.3.3" begin
+                exact = b*_H + a*_H*_H
+                tmp   = deepcopy(H)
+                @test mul!(tmp,H,H,a,b) ≈ exact
+            end
+        end#mul!
     end#gemm
+    @testset "flush data" begin
+        using HierarchicalMatrices: flush_to_children!, flush_to_leaves!, hasdata, setdata!, flush_tree!
+
+        @testset "flush_to_children" begin
+            exact = _H + _R
+            tmp   = deepcopy(H)
+            setdata!(tmp,R)
+            tmp ≈ exact
+            @test hasdata(tmp) == true
+            HierarchicalMatrices.flush_to_children!(tmp)
+            @test hasdata(tmp) == false
+            @test tmp ≈ exact
+        end
+        @testset "flush_to_leaves" begin
+            exact = _H + _R
+            tmp   = deepcopy(H)
+            setdata!(tmp,R)
+            tmp ≈ exact
+            @test hasdata(tmp) == true
+            HierarchicalMatrices.flush_to_leaves!(tmp)
+            @test hasdata(tmp) == false
+            @test tmp ≈ exact
+        end
+        @testset "flush_tree" begin
+            exact = _H + _R
+            tmp   = deepcopy(H)
+            setdata!(tmp,R)
+            tmp ≈ exact
+            @test hasdata(tmp) == true
+            HierarchicalMatrices.flush_tree!(tmp)
+            @test hasdata(tmp) == false
+            @test tmp ≈ exact
+        end
+    end
 end

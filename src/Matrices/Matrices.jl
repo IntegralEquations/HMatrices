@@ -1,6 +1,6 @@
 include("lazymatrix.jl")
 include("flexmatrix.jl")
 include("rkmatrix.jl")
-include("abstracthierarchicalmatrix.jl")
+include("abstracthmatrix.jl")
 include("hmatrix.jl")
 include("conversion.jl")

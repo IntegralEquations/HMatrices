@@ -15,12 +15,12 @@ using SafeTestsets
     M    = LazyMatrix(f,data,data)
     comp = HierarchicalMatrices.ACA(rtol=1e-6)
     @testset "Assembly CPU1" begin
-            H    = HMatrix(M,bclt,comp)
-            @test norm(H-M,2) < comp.rtol*norm(M)
-            @test norm(H-M,2) < comp.rtol*norm(M)
+        H    = HMatrix(M,bclt,comp) |> Matrix
+        @test norm(H-M,2) < comp.rtol*norm(M)
+        @test norm(H-M,2) < comp.rtol*norm(M)
     end
     @testset "Assembly CPUThreads" begin
-        H    = HMatrix(CPUThreads(),M,bclt,comp)
+        H    = HMatrix(CPUThreads(),M,bclt,comp) |> Matrix
         @test norm(H-M,2) < comp.rtol*norm(M)
         @test norm(H-M,2) < comp.rtol*norm(M)
     end
