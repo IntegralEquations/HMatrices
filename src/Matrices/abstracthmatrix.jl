@@ -2,6 +2,11 @@ abstract type  AbstractHMatrix{T} <: AbstractMatrix{T} end
 
 function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
     @debug "using `getindex(H::AbstractHMatrix,i::Int,j::Int)`"
+    shift = pivot(H) .-1
+    _getindex(H,i+shift[1],j+shift[2])
+end
+
+function _getindex(H,i,j)
     (i ∈ rowrange(H)) && (j ∈ colrange(H)) || throw(BoundsError(H,(i,j)))
     out = zero(eltype(H))
     if hasdata(H)
@@ -10,25 +15,19 @@ function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
     end
     for child in getchildren(H)
         if (i ∈ rowrange(child)) && (j ∈ colrange(child))
-            out += getindex(child,i,j)
+            out += _getindex(child,i,j)
         end
     end
     return out
 end
 
 Base.size(H::AbstractHMatrix) = length(rowrange(H)), length(colrange(H))
-Base.axes(H::AbstractHMatrix) = rowrange(H),colrange(H)
-function Base.similar(H::AbstractHMatrix) 
-    T = eltype(H)
-    similar(Matrix{T},size(H))
-end
-# FIXME: the method below is probably not OK
-Base.similar(A::T,t::Tuple{<:UnitRange,<:UnitRange}) where {T} = similar(A,length.(t))
 
 rowrange(H::AbstractHMatrix)         = H.rowrange
 colrange(H::AbstractHMatrix)         = H.colrange
 pivot(H::AbstractHMatrix)            = (rowrange(H).start,colrange(H).start)
 getchildren(H::AbstractHMatrix)      = H.children
+getchildren(H::AbstractHMatrix,args...)   = getindex(H.children,args...)
 setchildren!(H::AbstractHMatrix,chd) = (H.children = chd)
 getparent(H::AbstractHMatrix)        = H.parent
 setparent!(H::AbstractHMatrix,par)   = (H.parent   = par)
@@ -41,9 +40,9 @@ struct BlockIndex{T}
     indices::T
 end
 block(args...) = BlockIndex(args)
-Base.getindex(H::AbstractHMatrix,block::BlockIndex) = getindex(getchildren(H),block.indices...)
 blocksize(H::AbstractHMatrix,args...) = size(getchildren(H),args...)
 getblock(H::AbstractHMatrix,args...)  = getindex(getchildren(H),args...)
+Base.getindex(H::AbstractHMatrix,block::BlockIndex) = getblock(H,block.indices...)
 
 idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- pivot(H) .+ 1
 isleaf(H::AbstractHMatrix)                   = getchildren(H) === ()
