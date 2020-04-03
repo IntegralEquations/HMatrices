@@ -5,8 +5,6 @@ using SafeTestsets
     using HierarchicalMatrices: PartialACA, RkMatrix
     using LinearAlgebra
 
-    #TODO: find a better test for the inverse. The one below is poor due to the
-    #condition number of H
     N,r    = 500,4
     T    = ComplexF64
     data = rand(Clusters.Point{2,Float64},N)
@@ -23,57 +21,51 @@ using SafeTestsets
     _R   = Matrix(R)
     M    = rand(T,N,N)
     _M   = Matrix(M)
-    X    = rand(T,N,5)
     @testset "inv" begin
+        #TODO: find a better test for the inverse. The one below is poor due to the
+        #condition number of H
         Hinv = inv(H) |> Matrix
-        @test norm(Hinv - inv(_H)) < 1e-3
+        @test norm(Hinv - inv(_H)) < 1e-4
     end
     @testset "ldiv!" begin
+        X    = rand(T,N,5)
         L  = UnitLowerTriangular(H)
         _L = UnitLowerTriangular(_H)
-        tmp = copy(X)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*X
-        tmp = copy(R)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*_R
-        tmp = copy(H)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*_H
+        @test ldiv!(L,copy(X)) ≈ _L\X
+        @test ldiv!(L,deepcopy(R)) ≈ _L\_R
+        @test ldiv!(L,deepcopy(H)) ≈ _L\_H
+        L  = LowerTriangular(H)
+        _L = LowerTriangular(_H)
+        @test ldiv!(L,copy(X)) ≈ _L\X
+        @test ldiv!(L,deepcopy(R)) ≈ _L\_R
+        @test ldiv!(L,deepcopy(H)) ≈ _L\_H
+        U  = UnitUpperTriangular(H)
+        _U = UnitUpperTriangular(_H)
+        @test ldiv!(U,copy(X)) ≈ _U\X
+        @test ldiv!(U,deepcopy(R)) ≈ _U\_R
+        @test ldiv!(U,deepcopy(H)) ≈ _U\_H
         U  = UpperTriangular(H)
         _U = UpperTriangular(_H)
-        tmp = copy(X)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*X        
-        tmp = copy(R)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*R
-        tmp = copy(H)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*_H
+        @test ldiv!(U,copy(X)) ≈ _U\X
+        @test ldiv!(U,deepcopy(R)) ≈ _U\_R
+        @test ldiv!(U,deepcopy(H)) ≈ _U\_H
     end
     @testset "rdiv!" begin
+        X    = rand(T,5,N)
         L  = UnitLowerTriangular(H)
         _L = UnitLowerTriangular(_H)
-        tmp = copy(X)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*X
-        tmp = copy(R)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*_R
-        tmp = copy(H)
-        ldiv!(L,tmp)
-        @test tmp ≈ inv(_L)*_H
-        U  = UpperTriangular(H)
-        _U = UpperTriangular(_H)
-        tmp = copy(X)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*X        
-        tmp = copy(R)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*R
-        tmp = copy(H)
-        ldiv!(U,tmp)
-        @test tmp ≈ inv(_U)*_H
+        @test rdiv!(copy(X),L) ≈ X/_L
+        @test rdiv!(deepcopy(R),L) ≈ _R/_L
+        @test rdiv!(deepcopy(H),L) ≈ _H/_L
+        L  = LowerTriangular(H)
+        _L = LowerTriangular(_H)
+        @test rdiv!(copy(X),L) ≈ X/_L
+        @test rdiv!(deepcopy(R),L) ≈ _R/_L
+        @test rdiv!(deepcopy(H),L) ≈ _H/_L
+        U  = UnitUpperTriangular(H)
+        _U = UnitUpperTriangular(_H)
+        @test rdiv!(copy(X),U) ≈ X/_U
+        @test rdiv!(deepcopy(R),U) ≈ _R/_U
+        @test rdiv!(deepcopy(H),U) ≈ _H/_U
     end
 end
