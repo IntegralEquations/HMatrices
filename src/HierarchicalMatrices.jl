@@ -9,7 +9,7 @@ using UnsafeArrays
 
 import AbstractTrees: children
 
-import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, inv!
+import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, inv!, lu, lu!, ldiv!, rdiv!
 import Base: +, -, *, inv
 
 export HMatrix, LazyMatrix, Clusters

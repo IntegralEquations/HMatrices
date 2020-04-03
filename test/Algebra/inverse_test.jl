@@ -2,12 +2,12 @@ using SafeTestsets
 
 @safetestset "Inverse" begin
     using HierarchicalMatrices
-    using HierarchicalMatrices: PartialACA
+    using HierarchicalMatrices: PartialACA, RkMatrix
     using LinearAlgebra
 
     #TODO: find a better test for the inverse. The one below is poor due to the
     #condition number of H
-    N    = 500
+    N,r    = 500,4
     T    = ComplexF64
     data = rand(Clusters.Point{2,Float64},N)
     splitter   = Clusters.GeometricMinimalSplitter()
@@ -19,6 +19,61 @@ using SafeTestsets
     L    = LazyMatrix(f,data,data)
     H    = HMatrix(L,bclt,comp)
     _H   = Matrix(H)
-    Hinv = inv(H) |> Matrix
-    @test norm(Hinv - inv(_H)) < 1e-3
+    R    = RkMatrix(rand(T,N,r),rand(T,N,r))
+    _R   = Matrix(R)
+    M    = rand(T,N,N)
+    _M   = Matrix(M)
+    X    = rand(T,N,5)
+    @testset "inv" begin
+        Hinv = inv(H) |> Matrix
+        @test norm(Hinv - inv(_H)) < 1e-3
+    end
+    @testset "ldiv!" begin
+        L  = UnitLowerTriangular(H)
+        _L = UnitLowerTriangular(_H)
+        tmp = copy(X)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*X
+        tmp = copy(R)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*_R
+        tmp = copy(H)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*_H
+        U  = UpperTriangular(H)
+        _U = UpperTriangular(_H)
+        tmp = copy(X)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*X        
+        tmp = copy(R)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*R
+        tmp = copy(H)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*_H
+    end
+    @testset "rdiv!" begin
+        L  = UnitLowerTriangular(H)
+        _L = UnitLowerTriangular(_H)
+        tmp = copy(X)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*X
+        tmp = copy(R)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*_R
+        tmp = copy(H)
+        ldiv!(L,tmp)
+        @test tmp ≈ inv(_L)*_H
+        U  = UpperTriangular(H)
+        _U = UpperTriangular(_H)
+        tmp = copy(X)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*X        
+        tmp = copy(R)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*R
+        tmp = copy(H)
+        ldiv!(U,tmp)
+        @test tmp ≈ inv(_U)*_H
+    end
 end
