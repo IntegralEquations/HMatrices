@@ -1,5 +1,47 @@
 abstract type AbstractRkMatrix{T} <: AbstractMatrix{T} end
 
+"""
+    RkMatrix{T}
+
+Representation of a rank-`r` matrix ``M`` in the an outer product format:
+```math M = AB^T ``` where ``A`` has size `m`×`r` and ``B`` has size `n`×`r`,
+and ``B^T`` denotes the conjugate transpose (adjoint) of ``B``.
+"""
+mutable struct RkMatrix{T} <: AbstractRkMatrix{T}
+    A::Matrix{T}
+    B::Matrix{T}
+    function RkMatrix{T}(A::Matrix,B::Matrix) where {T<:Number}
+        @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
+        m,r = size(A)
+        n  = size(B,1)
+        if  r*(m+n) >= m*n
+            @debug "Inefficient RkMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
+        end
+        new{T}(A,B)
+    end
+end
+
+"""
+    RkFlexMatrix{T}
+
+Similar to [`RkMatrix`](@ref), but internally stores the matrices `A` and `B` as `FlexMatrix{T}`.
+
+See also: [`RkMatrix`](@ref), [`FlexMatrix`](@ref)
+"""
+struct RkFlexMatrix{T} <: AbstractRkMatrix{T}
+    A::FlexMatrix{T}
+    B::FlexMatrix{T}
+    function RkFlexMatrix{T}(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number}
+        @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
+        m,r = size(A)
+        n  = size(B,1)
+        if  r*(m+n) >= m*n && m*n != 0
+            @debug "Inefficient RkFlexMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
+        end
+        new{T}(A,B)
+    end
+end
+
 Base.size(rmat::AbstractRkMatrix)                                        = (size(rmat.A,1), size(rmat.B,1))
 Base.isapprox(rmat::AbstractRkMatrix,B::AbstractArray,args...;kwargs...) = isapprox(Matrix(rmat),B,args...;kwargs...)
 Base.getindex(rmat::AbstractRkMatrix,i::Int,j::Int)                      = sum(rmat.A[i,:].*rmat.Bt[:,j])
@@ -26,26 +68,6 @@ rank(M::AbstractRkMatrix) = size(M.A,2)
 num_elements(R::AbstractRkMatrix)     = rank(R)*(sum(size(R)))
 compression_rate(R::AbstractRkMatrix) = num_elements(R) / length(R)
 
-"""
-    RkFlexMatrix{T}
-
-Similar to [`RkMatrix`](@ref), but internally stores the matrices `A` and `B` as `FlexMatrix{T}`.
-
-See also: [`RkMatrix`](@ref), [`FlexMatrix`](@ref)
-"""
-struct RkFlexMatrix{T} <: AbstractRkMatrix{T}
-    A::FlexMatrix{T}
-    B::FlexMatrix{T}
-    function RkFlexMatrix{T}(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number}
-        @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
-        m,r = size(A)
-        n  = size(B,1)
-        if  r*(m+n) >= m*n && m*n != 0
-            @debug "Inefficient RkFlexMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
-        end
-        new{T}(A,B)
-    end
-end
 RkFlexMatrix(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number} = RkFlexMatrix{T}(A,B)
 RkFlexMatrix(A::Vector{T},B::Vector{T}) where {T<:Vector}         = RkFlexMatrix(FlexMatrix(A),FlexMatrix(B))
 RkFlexMatrix{T}(undef,m,n,r) where {T} = RkFlexMatrix(FlexMatrix{T}(undef,m,r),FlexMatrix{T}(undef,n,r))
@@ -56,41 +78,9 @@ function pushcross!(R::RkFlexMatrix,col,row)
     return R
 end
 
-"""
-    RkMatrix{T}
-
-Representation of a rank-`r` matrix ``M`` in the an outer product format:
-```math M = AB^T ``` where ``A`` has size `m`×`r` and ``B`` has size `n`×`r`,
-and ``B^T`` denotes the conjugate transpose (adjoint) of ``B``.
-"""
-mutable struct RkMatrix{T} <: AbstractRkMatrix{T}
-    A::Matrix{T}
-    B::Matrix{T}
-    function RkMatrix{T}(A::Matrix,B::Matrix) where {T<:Number}
-        @assert size(A,2) == size(B,2) "second dimension of `A` and `B` must match"
-        m,r = size(A)
-        n  = size(B,1)
-        if  r*(m+n) >= m*n
-            @debug "Inefficient RkMatrix: size(A)=$(size(A)), size(B)=$(size(B))"
-        end
-        new{T}(A,B)
-    end
-end
 RkMatrix(A::Matrix{T},B::Matrix{T}) where {T} = RkMatrix{T}(A,B)
 RkMatrix(A,B) = RkMatrix(promote(A,B)...)
 RkMatrix(R::RkFlexMatrix) = RkMatrix(Matrix(R.A),Matrix(R.B))
-
-function rkmatrix(F::LinearAlgebra.SVD)
-    A  = F.U*LinearAlgebra.Diagonal(F.S)
-    B  = copy(F.V)
-    return RkMatrix(A,B)
-end
-
-function rkmatrix!(F::LinearAlgebra.SVD)
-    A  = rmul!(F.U,LinearAlgebra.Diagonal(F.S))
-    B  = F.V
-    return RkMatrix(A,B)
-end
 
 function Base.hcat(M1::RkMatrix{T},M2::RkMatrix{T}) where {T}
     m,n  = size(M1)
@@ -135,7 +125,6 @@ function RkMatrix(M::Matrix)
     end
     return R
 end
-
 
 Base.rand(::Type{RkMatrix{T}},m::Int,n::Int,r::Int) where {T} = RkMatrix(rand(T,m,r),rand(T,n,r)) #useful for testing
 Base.rand(::Type{RkMatrix},m::Int,n::Int,r::Int) = rand(RkMatrix{Float64},m,n,r)

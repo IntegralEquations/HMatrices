@@ -9,24 +9,24 @@ function svd(M::RkMatrix)
     # treat weird case where it would be most efficient to convert first to a full matrix
     r > min(size(M)...) && return svd(Matrix(M))
     # qr part
-    QA, RA = LinearAlgebra.qr(M.A)
-    QB, RB = LinearAlgebra.qr(M.B)
+    QA, RA = qr(M.A)
+    QB, RB = qr(M.B)
     # svd part
-    F      = LinearAlgebra.svd(RA*adjoint(RB))
+    F      = svd(RA*adjoint(RB))
     # build U  and Vt
     U      = QA*F.U
     Vt     = F.Vt*adjoint(QB)
-    return LinearAlgebra.SVD(U,F.S,Vt) #create the SVD structure
+    return SVD(U,F.S,Vt) #create the SVD structure
 end
 
 function svd!(M::RkMatrix)
     r      = rank(M)
-    QA, RA = LinearAlgebra.qr!(M.A)
-    QB, RB = LinearAlgebra.qr!(M.B)
-    F      = LinearAlgebra.svd!(RA*adjoint(RB))
+    QA, RA = qr!(M.A)
+    QB, RB = qr!(M.B)
+    F      = svd!(RA*adjoint(RB))
     U      = QA*F.U
     Vt     = F.Vt*adjoint(QB)
-    return LinearAlgebra.SVD(U,F.S,Vt) #create the SVD structure
+    return SVD(U,F.S,Vt) #create the SVD structure
 end
 # TODO: the qrsvd function above should be optmized. A few notes: (a) by default
 # Julia calls a blocked version of LAPACK's qr algorithm, but it appears the
@@ -35,7 +35,7 @@ end
 
 # a posteriori truncation
 function trunc_svd(A::AbstractMatrix{T},tol) where {T}
-    F = LinearAlgebra.svd(A)
+    F = svd(A)
     r = findlast(x -> x>tol, F.S)
-    return LinearAlgebra.SVD(F.U[:,1:r],F.S[1:r],F.V[:,1:r])
+    return SVD(F.U[:,1:r],F.S[1:r],F.V[:,1:r])
 end

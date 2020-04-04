@@ -15,7 +15,7 @@ end
 
 function (aca::ACA)(K,irange::UnitRange,jrange::UnitRange)
     M  = K[irange,jrange] #computes the entire matrix.
-    _aca_full!(M,aca.atol,aca.rank,aca.rtol,x->LinearAlgebra.norm(x,aca.p))
+    _aca_full!(M,aca.atol,aca.rank,aca.rtol,x->norm(x,aca.p))
 end
 
 function _aca_full!(M, atol, rmax, rtol, norm)
@@ -32,9 +32,9 @@ function _aca_full!(M, atol, rmax, rtol, norm)
         else
             a = M[:,j]
             b = conj(M[i,:])
-            LinearAlgebra.rdiv!(a,δ)
+            rdiv!(a,δ)
             pushcross!(R,a,b)
-            LinearAlgebra.axpy!(-1,a*adjoint(b),M) # M <-- M - col*row'
+            axpy!(-1,a*adjoint(b),M) # M <-- M - col*row'
             er = norm(M) # exact error
         end
     end
@@ -54,7 +54,7 @@ Adaptive cross approximation compressor with partial pivoting for finding cross.
 end
 
 function (paca::PartialACA)(K,irange::UnitRange,jrange::UnitRange)
-    _aca_partial(K,irange,jrange,paca.atol,paca.rank,paca.rtol,x->LinearAlgebra.norm(x,paca.p))
+    _aca_partial(K,irange,jrange,paca.atol,paca.rank,paca.rtol,x->norm(x,paca.p))
 end
 
 function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
