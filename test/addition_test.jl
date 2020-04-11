@@ -2,14 +2,16 @@ using SafeTestsets
 
 @safetestset "Addition" begin
     using HierarchicalMatrices
+    using Clusters
+    using Clusters: Point
     using HierarchicalMatrices: ACA, PartialACA, RkMatrix
     using LinearAlgebra
 
     N,r     = 500,3
-    atol     = 1e-6
-    data = HierarchicalMatrices.points_on_cylinder(N,1,3/sqrt(N))
-    splitter   = Clusters.GeometricMinimalSplitter()
-    clt  = Clusters.ClusterTree(data,splitter;reorder=true)
+    atol    = 1e-6
+    data    = rand(Point{3,Float64},N)
+    splitter = GeometricMinimalSplitter()
+    clt   = ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(Inf)
     bclt = Clusters.BlockTree(clt,clt,adm)
     comp = HierarchicalMatrices.PartialACA(atol=atol)

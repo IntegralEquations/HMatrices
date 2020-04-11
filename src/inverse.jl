@@ -10,11 +10,16 @@ function inv!(M::HMatrix,X::HMatrix=zero(M))
         #recursion
         inv!(getblock(M,1,1),getblock(X,1,1))
         #update
-        mul!(getblock(X,1,2),getblock(M,1,1),getblock(M,1,2),-1,false)
-        flush_tree!(getblock(X,1,2))
-
-        mul!(getblock(X,2,1),getblock(M,2,1),getblock(M,1,1),true,false)
-        flush_tree!(getblock(X,2,1))
+        @sync begin
+            @spawn begin
+                mul!(getblock(X,1,2),getblock(M,1,1),getblock(M,1,2),-1,false)
+                flush_tree!(getblock(X,1,2))
+            end
+            @spawn begin
+                mul!(getblock(X,2,1),getblock(M,2,1),getblock(M,1,1),true,false)
+                flush_tree!(getblock(X,2,1))
+            end
+        end
 
         mul!(getblock(M,2,2),getblock(M,2,1),getblock(X,1,2),true,true)
         flush_tree!(getblock(M,2,2))
@@ -26,11 +31,16 @@ function inv!(M::HMatrix,X::HMatrix=zero(M))
         mul!(getblock(M,1,2),getblock(X,1,2),getblock(M,2,2),1,0)
         flush_tree!(getblock(M,1,2))
 
-        mul!(getblock(M,1,1),getblock(M,1,2),getblock(X,2,1),-1,true)
-        flush_tree!(getblock(M,1,1))
-
-        mul!(getblock(M,2,1),getblock(M,2,2),getblock(X,2,1),-1,false)
-        flush_tree!(getblock(M,2,1))
+        @sync begin
+            @spawn begin
+                mul!(getblock(M,1,1),getblock(M,1,2),getblock(X,2,1),-1,true)
+                flush_tree!(getblock(M,1,1))
+            end
+            @spawn begin
+                mul!(getblock(M,2,1),getblock(M,2,2),getblock(X,2,1),-1,false)
+                flush_tree!(getblock(M,2,1))
+            end
+        end
     end
     return M
 end

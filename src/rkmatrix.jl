@@ -68,6 +68,7 @@ rank(M::AbstractRkMatrix) = size(M.A,2)
 num_elements(R::AbstractRkMatrix)     = rank(R)*(sum(size(R)))
 compression_rate(R::AbstractRkMatrix) = num_elements(R) / length(R)
 
+RkFlexMatrix(A::Matrix{T},B::Matrix{T}) where {T<:Number} = RkFlexMatrix{T}(FlexMatrix(A),FlexMatrix(B))
 RkFlexMatrix(A::FlexMatrix{T},B::FlexMatrix{T}) where {T<:Number} = RkFlexMatrix{T}(A,B)
 RkFlexMatrix(A::Vector{T},B::Vector{T}) where {T<:Vector}         = RkFlexMatrix(FlexMatrix(A),FlexMatrix(B))
 RkFlexMatrix{T}(undef,m,n,r) where {T} = RkFlexMatrix(FlexMatrix{T}(undef,m,r),FlexMatrix{T}(undef,n,r))

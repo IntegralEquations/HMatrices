@@ -1,6 +1,6 @@
-abstract type  HierarchicalMatrix{T} <: AbstractMatrix{T} end
+abstract type  AbstractHMatrix{T} <: AbstractMatrix{T} end
 
-mutable struct HMatrix{S,F,T} <: HierarchicalMatrix{T}
+mutable struct HMatrix{S,F,T} <: AbstractHMatrix{T}
     rowrange::UnitRange{Int}
     colrange::UnitRange{Int}
     admissible::Bool
@@ -17,8 +17,8 @@ end
 
 HMatrix(args...;kwargs...) = HMatrix(CPU1(),args...;kwargs...)
 
-function Base.getindex(H::HierarchicalMatrix,i::Int,j::Int)
-    @debug "using `getindex(H::HierarchicalMatrix,i::Int,j::Int)`"
+function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
+    @debug "using `getindex(H::AbstractHMatrix,i::Int,j::Int)`"
     shift = pivot(H) .-1
     _getindex(H,i+shift[1],j+shift[2])
 end
@@ -38,35 +38,45 @@ function _getindex(H,i,j)
     return out
 end
 
-Base.size(H::HierarchicalMatrix) = length(rowrange(H)), length(colrange(H))
+Base.size(H::AbstractHMatrix) = length(rowrange(H)), length(colrange(H))
 
-rowrange(H::HierarchicalMatrix)         = H.rowrange
-colrange(H::HierarchicalMatrix)         = H.colrange
-pivot(H::HierarchicalMatrix)            = (rowrange(H).start,colrange(H).start)
-getchildren(H::HierarchicalMatrix)      = H.children
-getchildren(H::HierarchicalMatrix,args...)   = getindex(H.children,args...)
-setchildren!(H::HierarchicalMatrix,chd) = (H.children = chd)
-getparent(H::HierarchicalMatrix)        = H.parent
-setparent!(H::HierarchicalMatrix,par)   = (H.parent   = par)
-getdata(H::HierarchicalMatrix)          = H.data
-setdata!(H::HierarchicalMatrix,data)    = (H.data     = data)
-isadmissible(H::HierarchicalMatrix)     = H.admissible
+rowrange(H::AbstractHMatrix)         = H.rowrange
+colrange(H::AbstractHMatrix)         = H.colrange
+pivot(H::AbstractHMatrix)            = (rowrange(H).start,colrange(H).start)
+getchildren(H::AbstractHMatrix)      = H.children
+getchildren(H::AbstractHMatrix,args...)   = getindex(H.children,args...)
+setchildren!(H::AbstractHMatrix,chd) = (H.children = chd)
+getparent(H::AbstractHMatrix)        = H.parent
+setparent!(H::AbstractHMatrix,par)   = (H.parent   = par)
+getdata(H::AbstractHMatrix)          = H.data
+setdata!(H::AbstractHMatrix,data)    = (H.data     = data)
+isadmissible(H::AbstractHMatrix)     = H.admissible
+
+function copy(H::AbstractHMatrix)
+    n = fieldcount(typeof(H))
+    args =  ntuple(n) do i
+        f = getfield(H,i)
+        isbits(f) ? f : copy(f)
+    end
+    typeof(H)(args...)
+end
 
 #indexing by block
 struct BlockIndex{T}
     indices::T
 end
 block(args...) = BlockIndex(args)
-blocksize(H::HierarchicalMatrix,args...) = size(getchildren(H),args...)
-getblock(H::HierarchicalMatrix,args...)  = getindex(getchildren(H),args...)
-Base.getindex(H::HierarchicalMatrix,block::BlockIndex) = getblock(H,block.indices...)
+blocksize(H::AbstractHMatrix) = isleaf(H) ? (0,0) : size(getchildren(H))
+blocksize(H::AbstractHMatrix,i::Int) = isleaf(H) ? 0 : size(getchildren(H),i)
+getblock(H::AbstractHMatrix,args...)  = getindex(getchildren(H),args...)
+Base.getindex(H::AbstractHMatrix,block::BlockIndex) = getblock(H,block.indices...)
 
-idx_global_to_local(I,J,H::HierarchicalMatrix) = (I,J) .- pivot(H) .+ 1
-isleaf(H::HierarchicalMatrix)                   = getchildren(H) === ()
-isroot(H::HierarchicalMatrix)                   = getparent(H) === ()
-hasdata(H::HierarchicalMatrix)                  = getdata(H) !== ()
+idx_global_to_local(I,J,H::AbstractHMatrix) = (I,J) .- pivot(H) .+ 1
+isleaf(H::AbstractHMatrix)                   = getchildren(H) === ()
+isroot(H::AbstractHMatrix)                   = getparent(H) === ()
+hasdata(H::AbstractHMatrix)                  = getdata(H) !== ()
 
-function Base.zero(H::HierarchicalMatrix)
+function Base.zero(H::AbstractHMatrix)
     T = typeof(H)
     if !hasdata(H)
         H0 = T(rowrange(H),colrange(H),isadmissible(H),(),(),())
@@ -81,7 +91,7 @@ function Base.zero(H::HierarchicalMatrix)
     return H0
 end
 
-function Matrix(H::HierarchicalMatrix)
+function Matrix(H::AbstractHMatrix)
     M = zeros(eltype(H),size(H)...)
     shift = pivot(H) .- 1
     for block in PreOrderDFS(H)
@@ -93,7 +103,7 @@ function Matrix(H::HierarchicalMatrix)
     return M
 end
 
-function compression_rate(H::HierarchicalMatrix)
+function compression_rate(H::AbstractHMatrix)
     c = 0 # stored entries
     for block in PreOrderDFS(H)
         rel_size = length(block)/length(H)
@@ -106,11 +116,16 @@ end
 compression_rate(::Matrix) = 1
 
 # Interface to AbstractTrees
-children(H::HierarchicalMatrix) = getchildren(H)
-Base.eltype(::Type{<:TreeIterator{T}}) where {T<:HierarchicalMatrix}         = T
-Base.IteratorEltype(::Type{<:TreeIterator{T}}) where {T<:HierarchicalMatrix} = Base.HasEltype()
+children(H::AbstractHMatrix) = getchildren(H)
+Base.eltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHMatrix}         = T
+Base.IteratorEltype(::Type{<:TreeIterator{T}}) where {T<:AbstractHMatrix} = Base.HasEltype()
 
-function Base.show(io::IO,hmat::HierarchicalMatrix)
+function Base.summary(io::IO,H::AbstractHMatrix)
+    println("$(size(H,1))×$(size(H,2)) $(typeof(H)):")
+    println("\t compression: $(compression_rate(H))")
+end
+
+function Base.show(io::IO,hmat::AbstractHMatrix)
     print(io,"hmatrix with range ($(rowrange(hmat))) × ($(colrange(hmat)))")
 end
 
@@ -199,7 +214,7 @@ densetype(h::HMatrix{_,F}) where {_,F} = F
 ################################################################################
 ## Plot recipes
 ################################################################################
-@recipe function f(hmat::HierarchicalMatrix)
+@recipe function f(hmat::AbstractHMatrix)
     legend --> false
     grid   --> false
     # aspect_ratio --> :equal

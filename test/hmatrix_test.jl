@@ -2,6 +2,7 @@ using SafeTestsets
 
 @safetestset "HMatrix" begin
     using HierarchicalMatrices
+    using Clusters
     using HierarchicalMatrices: ACA, PartialACA
     using ComputationalResources
     using LinearAlgebra

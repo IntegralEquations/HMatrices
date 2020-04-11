@@ -2,6 +2,7 @@ using SafeTestsets
 
 @safetestset "Inverse" begin
     using HierarchicalMatrices
+    using Clusters
     using HierarchicalMatrices: PartialACA, RkMatrix
     using LinearAlgebra
 

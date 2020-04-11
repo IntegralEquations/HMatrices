@@ -1,9 +1,9 @@
 ```@meta
 DocTestSetup  = quote
-    using HierarchicalMatrices
+    using HMatrices
 end
 ```
-# HierarchicalMatrices
+# HMatrices
 
 *Documentation goes here.*
 
@@ -59,6 +59,6 @@ julia> a + b + c
 ### @autodocs
 
 ```@autodocs
-Modules = [HierarchicalMatrices]
+Modules = [HMatrices]
 Order   = [:function, :type]
 ```

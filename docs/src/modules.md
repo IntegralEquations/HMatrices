@@ -2,13 +2,13 @@
 
 ## Geometry
 ```@autodocs
-Modules = [HierarchicalMatrices.Geometry]
+Modules = [HMatrices.Geometry]
 Order   = [:module, :function, :type]
 ```
 
 ## Clusters
 ```@autodocs
-Modules = [HierarchicalMatrices.Clusters]
+Modules = [HMatrices.Clusters]
 Order   = [:module, :function, :type]
 ```
 

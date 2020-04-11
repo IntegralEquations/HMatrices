@@ -1,4 +1,4 @@
-const AdjHMatrix = Adjoint{<:Any,<:HierarchicalMatrix}
+const AdjHMatrix = Adjoint{<:Any,<:AbstractHMatrix}
 hasdata(adjH::AdjHMatrix) = hasdata(adjH.parent)
 getdata(adjH::AdjHMatrix) = adjoint(getdata(adjH.parent))
 getchildren(adjH::AdjHMatrix) = isleaf(adjH.parent) ? () : adjoint(getchildren(adjH.parent)) 

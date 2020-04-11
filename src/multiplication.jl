@@ -53,7 +53,7 @@ function mul!(yt::VecAdj,xt::VecAdj,R::RkMatrix,a::Number,b::Number)
 end
 
 # CPU1
-function mul!(resources::CPU1,C::AbstractVector,H::HierarchicalMatrix,F::AbstractVector,a::Number=true,b::Number=false)
+function mul!(resources::CPU1,C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number=true,b::Number=false)
     rmul!(C,b)
     if hasdata(H)
         _multiply_leaf!(C,H,F,a,b)
@@ -64,7 +64,7 @@ function mul!(resources::CPU1,C::AbstractVector,H::HierarchicalMatrix,F::Abstrac
     return C
 end
 
-function mul!(y::AbstractVector,adjH::Adjoint{<:Any,<:HierarchicalMatrix},x::AbstractVector,a::Number=true,b::Number=false)
+function mul!(y::AbstractVector,adjH::Adjoint{<:Any,<:AbstractHMatrix},x::AbstractVector,a::Number=true,b::Number=false)
     rmul!(y,b)
     if isleaf(adjH)
         _multiply_leaf!(y,adjH,x,a,true)
@@ -77,7 +77,7 @@ function mul!(y::AbstractVector,adjH::Adjoint{<:Any,<:HierarchicalMatrix},x::Abs
 end
 
 # CPUThreads
-function mul!(resources::CPUThreads,C::AbstractVector,H::HierarchicalMatrix,F::AbstractVector,a::Number=true,b::Number=false)
+function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number=true,b::Number=false)
     rmul!(C,b)
     nthreads = Threads.nthreads()
     y        = [zero(C) for _ = 1:nthreads]
@@ -95,7 +95,7 @@ function mul!(resources::CPUThreads,C::AbstractVector,H::HierarchicalMatrix,F::A
 end
 
 # default
-mul!(C::AbstractVector,H::HierarchicalMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPU1(),C,H,F,a,b)
+mul!(C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPU1(),C,H,F,a,b)
 
 function _multiply_leaf!(C::AbstractVector,H,F::AbstractVector,a,b)
     irange = rowrange(H)
@@ -155,13 +155,13 @@ end
 # correctly falls back to mul!
 
 #3.2
-function (*)(H::HierarchicalMatrix,R::RkMatrix)
+function (*)(H::AbstractHMatrix,R::RkMatrix)
     tmp = H*R.A
     return RkMatrix(tmp,copy(R.B))
 end
 
 #3.3
-function (*)(A::HierarchicalMatrix,B::HierarchicalMatrix)
+function (*)(A::AbstractHMatrix,B::AbstractHMatrix)
     error("multiplying hierarchical matrix requires specifying a target hierarchical structure")
 end
 
@@ -191,7 +191,7 @@ end
 ################################################################################
 ## 1.1.3
 ################################################################################x
-function mul!(C::AbstractMatrix,M::AbstractMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,M::AbstractMatrix,H::AbstractHMatrix,a::Number,b::Number)
     @debug "1.1.3"
     rmul!(C,b)
     if hasdata(H)
@@ -209,7 +209,7 @@ function mul!(C::AbstractMatrix,M::AbstractMatrix,H::HierarchicalMatrix,a::Numbe
     return C
 end
 
-function _multiply_leaf!(C::Matrix,M::Matrix,H::HierarchicalMatrix,a::Number,b::Number)
+function _multiply_leaf!(C::Matrix,M::Matrix,H::AbstractHMatrix,a::Number,b::Number)
     irange = rowrange(H)
     jrange = colrange(H)
     Cview  = uview(C,:,jrange)
@@ -248,7 +248,7 @@ end
 ################################################################################
 ## 1.2.3
 ################################################################################
-function mul!(C::AbstractMatrix,R::AbstractRkMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,R::AbstractRkMatrix,H::AbstractHMatrix,a::Number,b::Number)
     @debug "1.2.3"
     tmp = R*H
     mul!(C,tmp.A,tmp.Bt,a,b)
@@ -258,7 +258,7 @@ end
 ################################################################################
 ## 1.3.1
 ################################################################################
-function mul!(C::AbstractMatrix,H::HierarchicalMatrix,M::AbstractMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,H::AbstractHMatrix,M::AbstractMatrix,a::Number,b::Number)
     @debug "1.3.1"
     rmul!(C,b)
     if hasdata(H)
@@ -277,7 +277,7 @@ function mul!(C::AbstractMatrix,H::HierarchicalMatrix,M::AbstractMatrix,a::Numbe
     return C
 end
 
-@inline function _multiply_leaf!(C::Matrix,H::HierarchicalMatrix,M::Matrix,a,b)
+@inline function _multiply_leaf!(C::Matrix,H::AbstractHMatrix,M::Matrix,a,b)
     irange = rowrange(H)
     jrange = colrange(H)
     Cview  = view(C,irange,:)
@@ -287,7 +287,7 @@ end
     return C
 end
 
-function mul!(C::AbstractMatrix,adjH::Adjoint{<:Any,<:HierarchicalMatrix},M::AbstractMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,adjH::Adjoint{<:Any,<:AbstractHMatrix},M::AbstractMatrix,a::Number,b::Number)
     @debug "1.3t.1"
     rmul!(C,b)
     if hasdata(adjH)
@@ -305,7 +305,7 @@ function mul!(C::AbstractMatrix,adjH::Adjoint{<:Any,<:HierarchicalMatrix},M::Abs
     return C
 end
 
-@inline function _multiply_leaf!(C::Matrix,adjH::Adjoint{<:Any,<:HierarchicalMatrix},M::Matrix,a,b)
+@inline function _multiply_leaf!(C::Matrix,adjH::Adjoint{<:Any,<:AbstractHMatrix},M::Matrix,a,b)
     irange = rowrange(adjH)
     jrange = colrange(adjH)
     Cview  = view(C,irange,:)
@@ -318,7 +318,7 @@ end
 ################################################################################
 ## 1.3.2
 ################################################################################
-function mul!(C::AbstractMatrix,H::HierarchicalMatrix,R::AbstractRkMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,H::AbstractHMatrix,R::AbstractRkMatrix,a::Number,b::Number)
     @debug "1.3.2"
     buffer=similar(C,size(H,1),rank(R))
     mul!(buffer,H,R.A)
@@ -329,7 +329,7 @@ end
 ################################################################################
 ## 1.3.3 (should never arise in practice, thus sloppy implementation)
 ################################################################################
-function mul!(C::AbstractMatrix,H::HierarchicalMatrix,S::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractMatrix,H::AbstractHMatrix,S::AbstractHMatrix,a::Number,b::Number)
     @debug "1.3.3: this case should not arise"
     mul!(C,H,Matrix(S),a,b)
     return C
@@ -360,7 +360,7 @@ end
 ################################################################################
 ## 2.1.3
 ################################################################################
-function mul!(C::AbstractRkMatrix,M::AbstractMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractRkMatrix,M::AbstractMatrix,H::AbstractHMatrix,a::Number,b::Number)
     @debug "2.1.3: this case should not arise"
     buffer = similar(C,size(M,1),size(H,2))
     mul!(buffer,M,H)
@@ -390,7 +390,7 @@ end
 ################################################################################
 ## 2.2.3
 ################################################################################
-function mul!(C::AbstractRkMatrix,R::AbstractRkMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractRkMatrix,R::AbstractRkMatrix,H::AbstractHMatrix,a::Number,b::Number)
     tmp = R*H
     axpby!(a,tmp,b,C)
     return C
@@ -400,7 +400,7 @@ end
 ################################################################################
 ## 2.3.1
 ################################################################################
-function mul!(C::AbstractRkMatrix,H::HierarchicalMatrix,M::AbstractMatrix,a::Number,b::Number)
+function mul!(C::AbstractRkMatrix,H::AbstractHMatrix,M::AbstractMatrix,a::Number,b::Number)
     @debug "2.3.1: this case should not arise"
     T = promote_type(eltype(H),eltype(M))
     buffer = Matrix{T}(undef,size(H,1),size(M,2))
@@ -412,7 +412,7 @@ end
 ################################################################################
 ## 2.3.2
 ################################################################################
-function mul!(C::AbstractRkMatrix,H::HierarchicalMatrix,R::AbstractRkMatrix,a::Number,b::Number)
+function mul!(C::AbstractRkMatrix,H::AbstractHMatrix,R::AbstractRkMatrix,a::Number,b::Number)
     tmp = H*R
     axpby!(a,tmp,b,C)
     return C
@@ -421,7 +421,7 @@ end
 ################################################################################
 ## 2.3.3
 ################################################################################
-function mul!(C::AbstractRkMatrix,A::HierarchicalMatrix,B::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractRkMatrix,A::AbstractHMatrix,B::AbstractHMatrix,a::Number,b::Number)
     @debug "2.3.3"
     # tp = TwoProd(A,B)
     # tmp = compress(tp,PartialACA(atol=1e-6))
@@ -456,7 +456,7 @@ end
 ################################################################################
 ## 3.1.1
 ################################################################################
-function mul!(C::HierarchicalMatrix,M::AbstractMatrix,F::AbstractMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,M::AbstractMatrix,F::AbstractMatrix,a::Number,b::Number)
     @debug "3.1.1: should not arise"
     tmp = M*F
     if hasdata(C)
@@ -471,7 +471,7 @@ end
 ################################################################################
 ## 3.1.2
 ################################################################################
-function mul!(C::HierarchicalMatrix,M::AbstractMatrix,R::AbstractRkMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,M::AbstractMatrix,R::AbstractRkMatrix,a::Number,b::Number)
     tmp = M*R
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -485,7 +485,7 @@ end
 ################################################################################
 ## 3.1.3
 ################################################################################
-function mul!(C::HierarchicalMatrix,M::AbstractMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,M::AbstractMatrix,H::AbstractHMatrix,a::Number,b::Number)
     tmp = M*H
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -499,7 +499,7 @@ end
 ################################################################################
 ## 3.2.1
 ################################################################################
-function mul!(C::HierarchicalMatrix,R::AbstractRkMatrix,M::AbstractMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,M::AbstractMatrix,a::Number,b::Number)
     @debug "3.2.1"
     tmp = R*M
     if hasdata(C)
@@ -514,7 +514,7 @@ end
 ################################################################################
 ## 3.2.2
 ################################################################################
-function mul!(C::HierarchicalMatrix,R::AbstractRkMatrix,M::AbstractRkMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,M::AbstractRkMatrix,a::Number,b::Number)
     @debug "3.2.2"
     tmp = R*M
     if hasdata(C)
@@ -529,7 +529,7 @@ end
 ################################################################################
 ## 3.2.3
 ################################################################################
-function mul!(C::HierarchicalMatrix,R::AbstractRkMatrix,H::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,H::AbstractHMatrix,a::Number,b::Number)
     @debug "3.2.3"
     tmp = R*H
     if hasdata(C)
@@ -544,7 +544,7 @@ end
 ################################################################################
 ## 3.3.1
 ################################################################################
-function mul!(C::HierarchicalMatrix,H::HierarchicalMatrix,M::Matrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,H::AbstractHMatrix,M::Matrix,a::Number,b::Number)
     @debug "3.3.1: this case should not arise"
     tmp = H*M
     if hasdata(C)
@@ -559,7 +559,7 @@ end
 ################################################################################
 ## 3.3.2
 ################################################################################
-function mul!(C::HierarchicalMatrix,H::HierarchicalMatrix,R::AbstractRkMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,H::AbstractHMatrix,R::AbstractRkMatrix,a::Number,b::Number)
     @debug "3.3.2"
     tmp = H*R
     if hasdata(C)
@@ -574,67 +574,35 @@ end
 ################################################################################
 ## 3.3.3
 ################################################################################
-function mul!(C::HierarchicalMatrix,A::HierarchicalMatrix,B::HierarchicalMatrix,a::Number,b::Number)
+function mul!(C::AbstractHMatrix,A::AbstractHMatrix,B::AbstractHMatrix,a::Number,b::Number)
     rmul!(C,b)
-    if !isleaf(A) && !isleaf(B)
-        if isleaf(C)
-            mul!(C.data,A,B,a,true)
-        else
-            ni,nj = blocksize(C)
-            _ ,nk = blocksize(A)
-            for i=1:ni
-                for j=1:nj
-                    for k=1:nk
-                        mul!(getblock(C,i,j),getblock(A,i,k),getblock(B,k,j),a,true)
-                    end
+    if isleaf(A) || isleaf(B) || isleaf(B)
+        _mul!(C,A,B,a,true)
+    else
+        # multiply the children
+        ni,nj = blocksize(C)
+        _ ,nk = blocksize(A)
+        for i=1:ni
+            for j=1:nj
+                for k=1:nk
+                    mul!(getblock(C,i,j),getblock(A,i,k),getblock(B,k,j),a,true)
                 end
             end
         end
-    else# A is leaf OR B is leaf
-        Cdata  = isleaf(C) ? C.data : C
-        Adata  = isleaf(A) ? A.data : A
-        Bdata  = isleaf(B) ? B.data : B
-        mul!(Cdata,Adata,Bdata,a,true)
     end
     return C
 end
 
-################################################################################
-## 3.3.3
-################################################################################
-# function mul!(C::HierarchicalMatrix,A::HierarchicalMatrix,B::HierarchicalMatrix,a::Number,b::Number)
-    # rmul!(C,b)
-    # if isleaf(C)||isleaf(A)||isleaf(B)
-    #     if isleaf(C)
-    #         mul!(C.data,A,B)
-    #     elseif isleaf(A)
-    #         mul!(C,A.data,B)
-    #     elseif isleaf(C,A,B.data)
-
-
-
-
-    #     Cdata  = isleaf(C) ? C.data : C
-    #     Adata  = isleaf(A) ? A.data : A
-    #     Bdata  = isleaf(B) ? B.data : B
-    #     # C.data = mul!(Cdata,Adata,Bdata,a,1) # base case, C.data <-- α*A*B + β*C
-    #     C.data = C.data + a*Adata*Bdata
-    #     if !isleaf(C)
-    #         flush_to_leaves!(C)
-    #     end
-    # else
-    #     imax,jmax = size(getchildren(C))
-    #     kmax      = size(get)
-    #     for i=1:imax
-    #         for j=1:jmax
-    #             for k=1:kmax
-    #                 mul!(getblock(C,i,j),getblock(A,i,k),getblock(B,k,j),a,1)
-    #             end
-    #         end
-    #     end
-    # end
-# end
-
+# terminal case which dynamically dispatches to appropriate method
+function _mul!(C::AbstractHMatrix,A::AbstractHMatrix,B::AbstractHMatrix,a::Number,b::Number)
+    @assert isleaf(A) || isleaf(B) || isleaf(B)
+    Cdata  = hasdata(C) ? getdata(C) : C
+    Adata  = hasdata(A) ? getdata(A) : A
+    Bdata  = hasdata(B) ? getdata(B) : B
+    mul!(Cdata,Adata,Bdata,a,true)
+    flush_tree!(C)
+    return C
+end
 
 ################################################################################
 ## FLUSH_TO_CHILDREN

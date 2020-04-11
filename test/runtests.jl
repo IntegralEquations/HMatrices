@@ -1,9 +1,15 @@
-using HierarchicalMatrices
+using HMatrices
 using Test
 
 using Random
 Random.seed!(0)
 
-include("Clusters/runtests.jl")
-include("Matrices/runtests.jl")
-include("Algebra/runtests.jl")
+include("rkmatrix_test.jl")
+include("flexmatrix_test.jl")
+include("rkflexmatrix_test.jl")
+include("hmatrix_test.jl")
+include("svd_test.jl")
+include("compressor_test.jl")
+include("addition_test.jl")
+include("multiplication_test.jl")
+include("inverse_test.jl")

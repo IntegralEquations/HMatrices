@@ -2,10 +2,10 @@
 ## LowerTriangular
 ################################################################################
 
-const HUnitLowerTriangular = UnitLowerTriangular{<:Any,<:HierarchicalMatrix}
-const HLowerTriangular     = LowerTriangular{<:Any,<:HierarchicalMatrix}
-const HUpperTriangular     = UpperTriangular{<:Any,<:HierarchicalMatrix}
-const HUnitUpperTriangular = UnitUpperTriangular{<:Any,<:HierarchicalMatrix}
+const HUnitLowerTriangular = UnitLowerTriangular{<:Any,<:AbstractHMatrix}
+const HLowerTriangular     = LowerTriangular{<:Any,<:AbstractHMatrix}
+const HUpperTriangular     = UpperTriangular{<:Any,<:AbstractHMatrix}
+const HUnitUpperTriangular = UnitUpperTriangular{<:Any,<:AbstractHMatrix}
 
 getdata(L::HUnitLowerTriangular) = hasdata(L) ? UnitLowerTriangular(getdata(L.data)) : ()
 hasdata(L::HUnitLowerTriangular) = hasdata(L.data)
@@ -58,7 +58,7 @@ end
 
 ldiv!(L::Union{HUnitLowerTriangular,HLowerTriangular},R::RkMatrix) = (ldiv!(L,R.A); R)
 
-function ldiv!(L::Union{HUnitLowerTriangular,HLowerTriangular},X::HierarchicalMatrix)
+function ldiv!(L::Union{HUnitLowerTriangular,HLowerTriangular},X::AbstractHMatrix)
     if isleaf(X)
         data = getdata(X)
         ldiv!(L,data)
@@ -115,7 +115,7 @@ function rdiv!(R::RkMatrix,L::Union{HUnitLowerTriangular,HLowerTriangular})
     return R
 end
 
-function rdiv!(X::HierarchicalMatrix,L::Union{HUnitLowerTriangular,HLowerTriangular})
+function rdiv!(X::AbstractHMatrix,L::Union{HUnitLowerTriangular,HLowerTriangular})
     if isleaf(X)
         data = getdata(X)
         rdiv!(data,L) # b <-- b/L
@@ -193,7 +193,7 @@ end
 
 ldiv!(U::Union{HUpperTriangular,HUnitUpperTriangular},R::RkMatrix)     = (ldiv!(U,R.A); R)
 
-function ldiv!(U::Union{HUpperTriangular,HUnitUpperTriangular},X::HierarchicalMatrix)
+function ldiv!(U::Union{HUpperTriangular,HUnitUpperTriangular},X::AbstractHMatrix)
     if isleaf(X)
         data = getdata(X)
         ldiv!(U,data)
@@ -248,7 +248,7 @@ function rdiv!(R::RkMatrix,U::Union{HUnitUpperTriangular,HUpperTriangular})
     return R
 end
 
-function rdiv!(X::HierarchicalMatrix,U::Union{HUnitUpperTriangular,HUpperTriangular})
+function rdiv!(X::AbstractHMatrix,U::Union{HUnitUpperTriangular,HUpperTriangular})
     if isleaf(X)
         data = getdata(X)
         rdiv!(data,U) # b <-- b/L

@@ -1,7 +1,0 @@
-include("svd.jl")
-include("norm.jl")
-include("compressor.jl")
-include("addition.jl")
-include("multiplication.jl")
-include("inverse.jl")
-include("triangular.jl")

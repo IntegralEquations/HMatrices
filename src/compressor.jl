@@ -13,6 +13,29 @@ is guaranteed  to work.
     p::Int = 2
 end
 
+"""
+    PartialACA <: AbstractCompressor
+
+Adaptive cross approximation compressor with partial pivoting for finding cross. Does not require evaluation of entire matrix, but is not guaranteed to converge either.
+"""
+@Base.kwdef struct PartialACA <: AbstractCompressor
+    atol::Float64 = 0
+    rank::Int     = typemax(Int)
+    rtol::Float64 = atol>0 || rank<typemax(Int) ? 0 : sqrt(eps(Float64))
+end
+
+"""
+    TSVD
+
+Truncated svd
+"""
+@Base.kwdef struct TSVD
+    atol::Float64 = 0
+    rank::Int     = typemax(Int)
+    rtol::Float64 = atol>0 || rank<typemax(Int) ? 0 : sqrt(eps(Float64))
+end
+
+
 function (aca::ACA)(K,irange::UnitRange,jrange::UnitRange)
     M  = K[irange,jrange] #computes the entire matrix.
     _aca_full!(M,aca.atol,aca.rank,aca.rtol,x->norm(x,aca.p))
@@ -41,26 +64,15 @@ function _aca_full!(M, atol, rmax, rtol, norm)
     return RkMatrix(R)
 end
 
-"""
-    PartialACA <: AbstractCompressor
-
-Adaptive cross approximation compressor with partial pivoting for finding cross. Does not require evaluation of entire matrix, but is not guaranteed to converge either.
-"""
-@Base.kwdef struct PartialACA <: AbstractCompressor
-    atol::Float64 = 0
-    rank::Int     = typemax(Int)
-    rtol::Float64 = atol>0 || rank<typemax(Int) ? 0 : sqrt(eps(Float64))
-    p::Int = 2
-end
-
 function (paca::PartialACA)(K,irange::UnitRange,jrange::UnitRange)
-    _aca_partial(K,irange,jrange,paca.atol,paca.rank,paca.rtol,x->norm(x,paca.p))
+    _aca_partial(K,irange,jrange,paca.atol,paca.rank,paca.rtol)
 end
 
-function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
+function _aca_partial(K,irange,jrange,atol,rmax,rtol)
     ishift,jshift = irange.start-1, jrange.start-1 #maps global indices to local indices
     T   = Base.eltype(K)
     m,n = length(irange),length(jrange)
+    rmax = min(rmax,min(m,n))
     R   = RkFlexMatrix{T}(undef,m,n,0)
     A   = R.A
     B   = R.B
@@ -91,12 +103,24 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol,norm)
                 axpy!(-conj(B[j,k]),A[:,k],a)
             end
             pushcross!(R,a,b)
-            er       = norm(a)*norm(b) # estimate the error
-            est_norm = norm(R) #use norm of approximation as an approximation of the norm
+            er       = norm(a)*norm(b) # estimate the error by || R_{k} - R_{k-1} || = ||a|| ||b||
+            est_norm = _update_frob_norm(est_norm,R) # estimate the norm by || K || ≈ || R_k || 
             i        = _nextrow(a,I)
         end
     end
     return RkMatrix(R)
+end
+
+@inline function _update_frob_norm(cur,R)
+    k = rank(R)
+    A,B = R.A, R.B
+    a = A[:,end]
+    b = B[:,end]
+    out = norm(a)^2 * norm(b)^2
+    for l=1:k-1
+        out += 2*real(dot(A[:,l],a)*conj(dot(B[:,l],b)))
+    end
+    return sqrt(cur^2 + out)
 end
 
 function _nextcol(col,J)
@@ -112,3 +136,46 @@ function _nextcol(col,J)
     return out
 end
 _nextrow(row,I) = _nextcol(row,I)
+
+
+################################################################################
+## Truncated SVD
+###############################################################################
+compress(R::RkMatrix,tsvd::TSVD) = compress!(deepcopy(R),tsvd)
+
+function compress!(R::RkMatrix,tsvd::TSVD)
+    m,n = size(R)
+    F   = svd!(R)
+    enorm = F.S[1]
+    r = findlast(x -> x>max(tsvd.atol,tsvd.rtol*enorm), F.S)
+    r = min(r,tsvd.rank)
+    if m<n
+        R.A = F.U[:,1:r]*Diagonal(F.S[1:r])
+        R.B = F.V[:,1:r]
+    else
+        R.A = F.U[:,1:r]
+        R.B = F.Vt[:,1:r]*Diagonal(F.S[1:r])
+    end
+    return R
+end
+
+function compress(H::HMatrix,tsvd::TSVD)
+    if isadmissible(H)
+        return compress!(getdata(H),tsvd)
+    else
+        blocks = [compress(child,tsvd) for child in getchildren(H)]
+        return compress(blocks,tsvd)
+    end
+end
+
+# function compress(B::Matrix{<:RkMatrix},tsvd::TSVD)
+#     @assert size(B) == (2,2)
+#     tmp1 = compress(hcat(B[1,1],B[1,2]),tsvd)
+#     tmp2 = compress(hcat(B[2,1],B[2,2]),tsvd)
+#     tmp3 = compress(vcat(tmp1,tmp2),tsvd)
+#     return tmp3
+# end
+
+# function compress(H,paca::PartialACA)
+#     return paca(H)
+# end

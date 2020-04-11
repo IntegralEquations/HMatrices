@@ -2,12 +2,14 @@ using SafeTestsets
 
 @safetestset "Multiplication" begin
     using HierarchicalMatrices
+    using Clusters
+    using Clusters: Point
     using HierarchicalMatrices: ACA, PartialACA, RkMatrix
     using LinearAlgebra
 
     N,r    = 500, 3
     T      = ComplexF64
-    data   = HierarchicalMatrices.points_on_cylinder(N,1,3/sqrt(N))
+    data   = rand(Point{3,Float64},N)
     splitter   = Clusters.GeometricMinimalSplitter()
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(100)
