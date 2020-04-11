@@ -5,7 +5,7 @@ import Base: +, -, *, inv, copy
 import AbstractTrees: children
 
 using LinearAlgebra: Adjoint, UnitLowerTriangular, LowerTriangular, UnitUpperTriangular, UpperTriangular,
-                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot
+                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot, UniformScaling
 using Base.Threads: @spawn
 using ComputationalResources: CPU1, CPUThreads, AbstractResource
 using AbstractTrees: TreeIterator, Leaves, PreOrderDFS
@@ -29,7 +29,7 @@ include("utils.jl")
 include("lazymatrix.jl")
 include("flexmatrix.jl")
 include("rkmatrix.jl")
-include("hierarchicalmatrix.jl")
+include("hmatrix.jl")
 include("conversion.jl")
 include("adjoint.jl")
 include("svd.jl")
@@ -40,5 +40,7 @@ include("multiplication.jl")
 include("inverse.jl")
 include("triangular.jl")
 include("lu.jl")
+
+include("parameters.jl")
 
 end # module

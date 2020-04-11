@@ -1,10 +1,10 @@
 using SafeTestsets
 
 @safetestset "Addition" begin
-    using HierarchicalMatrices
+    using HMatrices
     using Clusters
     using Clusters: Point
-    using HierarchicalMatrices: ACA, PartialACA, RkMatrix
+    using HMatrices: ACA, PartialACA, RkMatrix
     using LinearAlgebra
 
     N,r     = 500,3
@@ -14,7 +14,7 @@ using SafeTestsets
     clt   = ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(Inf)
     bclt = Clusters.BlockTree(clt,clt,adm)
-    comp = HierarchicalMatrices.PartialACA(atol=atol)
+    comp = HMatrices.PartialACA(atol=atol)
     f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
     M    = LazyMatrix(f,data,data)
     T    = ComplexF64

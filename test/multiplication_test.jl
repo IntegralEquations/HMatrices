@@ -1,10 +1,10 @@
 using SafeTestsets
 
 @safetestset "Multiplication" begin
-    using HierarchicalMatrices
+    using HMatrices
     using Clusters
     using Clusters: Point
-    using HierarchicalMatrices: ACA, PartialACA, RkMatrix
+    using HMatrices: ACA, PartialACA, RkMatrix
     using LinearAlgebra
 
     N,r    = 500, 3
@@ -14,7 +14,7 @@ using SafeTestsets
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(100)
     bclt = Clusters.BlockTree(clt,clt,adm)
-    comp = HierarchicalMatrices.PartialACA(rtol=1e-6)
+    comp = HMatrices.PartialACA(rtol=1e-6)
     f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
     L    = LazyMatrix(f,data,data)
     H    = HMatrix(L,bclt,comp)
@@ -238,7 +238,7 @@ using SafeTestsets
         end#mul!
     end#gemm
     @testset "flush data" begin
-        using HierarchicalMatrices: flush_to_children!, flush_to_leaves!, hasdata, setdata!, flush_tree!
+        using HMatrices: flush_to_children!, flush_to_leaves!, hasdata, setdata!, flush_tree!
 
         @testset "flush_to_children" begin
             exact = _H + _R
@@ -246,7 +246,7 @@ using SafeTestsets
             setdata!(tmp,R)
             tmp ≈ exact
             @test hasdata(tmp) == true
-            HierarchicalMatrices.flush_to_children!(tmp)
+            HMatrices.flush_to_children!(tmp)
             @test hasdata(tmp) == false
             @test tmp ≈ exact
         end
@@ -256,7 +256,7 @@ using SafeTestsets
             setdata!(tmp,R)
             tmp ≈ exact
             @test hasdata(tmp) == true
-            HierarchicalMatrices.flush_to_leaves!(tmp)
+            HMatrices.flush_to_leaves!(tmp)
             @test hasdata(tmp) == false
             @test tmp ≈ exact
         end
@@ -266,7 +266,7 @@ using SafeTestsets
             setdata!(tmp,R)
             tmp ≈ exact
             @test hasdata(tmp) == true
-            HierarchicalMatrices.flush_tree!(tmp)
+            HMatrices.flush_tree!(tmp)
             @test hasdata(tmp) == false
             @test tmp ≈ exact
         end

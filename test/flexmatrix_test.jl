@@ -1,8 +1,8 @@
 using SafeTestsets
 
 @safetestset "FlexMatrix" begin
-    using HierarchicalMatrices
-    using HierarchicalMatrices: FlexMatrix, compression_rate, pushcol!
+    using HMatrices
+    using HMatrices: FlexMatrix, compression_rate, pushcol!
     @testset "Simple ops" begin
         let
             m,n    = 10,5

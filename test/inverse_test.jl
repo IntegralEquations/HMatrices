@@ -1,9 +1,9 @@
 using SafeTestsets
 
 @safetestset "Inverse" begin
-    using HierarchicalMatrices
+    using HMatrices
     using Clusters
-    using HierarchicalMatrices: PartialACA, RkMatrix
+    using HMatrices: PartialACA, RkMatrix
     using LinearAlgebra
 
     N,r    = 500,4
@@ -13,7 +13,7 @@ using SafeTestsets
     clt  = Clusters.ClusterTree(data,splitter;reorder=true)
     adm  = Clusters.StrongAdmissibilityStd(100)
     bclt = Clusters.BlockTree(clt,clt,adm)
-    comp = HierarchicalMatrices.PartialACA(rtol=1e-6)
+    comp = HMatrices.PartialACA(rtol=1e-6)
     f(x,y)::ComplexF64 = exp(-norm(x-y))
     L    = LazyMatrix(f,data,data)
     H    = HMatrix(L,bclt,comp)

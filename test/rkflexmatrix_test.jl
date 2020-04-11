@@ -1,8 +1,8 @@
 using SafeTestsets
 
 @safetestset "RkFlexMatrix" begin
-    using HierarchicalMatrices
-    using HierarchicalMatrices: FlexMatrix, RkFlexMatrix, num_elements, compression_rate
+    using HMatrices
+    using HMatrices: FlexMatrix, RkFlexMatrix, num_elements, compression_rate
     @testset "Simple ops" begin
         let
             T = ComplexF64

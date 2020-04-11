@@ -1,8 +1,8 @@
 using SafeTestsets
 
 @safetestset "Compressor" begin
-    using HierarchicalMatrices
-    using HierarchicalMatrices: compress, ACA, PartialACA, TSVD
+    using HMatrices
+    using HMatrices: compress, ACA, PartialACA, TSVD
     using LinearAlgebra: norm, Diagonal, rank
     T = ComplexF64
     m,n,r = 100,100,100
@@ -38,7 +38,7 @@ using SafeTestsets
         aca = PartialACA(rank=r)
         R = aca(M,irange,jrange)
         @test rank(R) == r
-        using HierarchicalMatrices: FlexMatrix, RkFlexMatrix, pushcross!, _update_frob_norm
+        using HMatrices: FlexMatrix, RkFlexMatrix, pushcross!, _update_frob_norm
         m,n,r = 10,10,4
         T = ComplexF64
         # T = Float64

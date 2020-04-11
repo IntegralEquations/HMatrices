@@ -1,9 +1,9 @@
 using SafeTestsets
 
 @safetestset "HMatrix" begin
-    using HierarchicalMatrices
+    using HMatrices
     using Clusters
-    using HierarchicalMatrices: ACA, PartialACA
+    using HMatrices: ACA, PartialACA
     using ComputationalResources
     using LinearAlgebra
     N    = 1000
@@ -14,7 +14,7 @@ using SafeTestsets
     bclt = Clusters.BlockTree(clt,clt,adm)
     f(x,y)::ComplexF64 = x==y ? 0.0 : exp(im*LinearAlgebra.norm(x-y))/LinearAlgebra.norm(x-y)
     M    = LazyMatrix(f,data,data)
-    comp = HierarchicalMatrices.ACA(rtol=1e-6)
+    comp = HMatrices.ACA(rtol=1e-6)
     @testset "Assembly CPU1" begin
         H    = HMatrix(M,bclt,comp) |> Matrix
         @test norm(H-M,2) < comp.rtol*norm(M)

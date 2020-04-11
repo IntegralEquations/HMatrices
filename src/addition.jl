@@ -43,6 +43,10 @@ end
     axpby!(a,X,b,Y)
 """
 
+(+)(X::UniformScaling,Y::HMatrix) = axpby!(true,X,true,deepcopy(Y))
+(+)(X::HMatrix,Y::UniformScaling) = Y+X
+
+
 #1.2
 axpby!(a,X::Matrix,b,Y::RkMatrix) = axpby!(a,RkMatrix(X),b,Y)
 
@@ -114,6 +118,25 @@ function axpby!(a,X::HMatrix,b,Y::HMatrix)
     end
     for (bx,by) in zip(getchildren(X),getchildren(Y))
         axpby!(a,bx,true,by)
+    end
+    return Y
+end
+
+# some extra cases
+function axpby!(a,X::UniformScaling,b,Y::HMatrix)
+    rmul!(Y,b)
+    if hasdata(Y)
+        data = getdata(Y)
+        @assert data isa Matrix
+        n = min(size(data)...)
+        for i=1:n
+            data[i,i] += a*X.λ
+        end
+    else
+        n = min(blocksize(Y)...)
+        for i=1:n
+            axpby!(a,X,true,getchildren(Y,i,i))
+        end
     end
     return Y
 end
