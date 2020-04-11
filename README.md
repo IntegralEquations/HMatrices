@@ -57,7 +57,7 @@ G      = SingleLayerKernel{dim}(pde)
 dGdn   = DoubleLayerKernel{dim}(pde)
 BoundaryIntegralEquations.kerneltype(dGdn) = DoubleLayer()
 σ   = Density{ComplexF64}(quad)
-𝒟  = IntegralPotential(dGdn,quad)x
+𝒟  = IntegralPotential(dGdn,quad)
 D   = IntegralOperator(dGdn,quad,quad)
 # chose a representation 
 u   = 𝒟[σ]
