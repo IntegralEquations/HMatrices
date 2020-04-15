@@ -12,7 +12,6 @@ using AbstractTrees: TreeIterator, Leaves, PreOrderDFS
 using RecipesBase: @series, @recipe
 using RecipesBase
 using UnsafeArrays: uview
-using Clusters
 
 export
     # Types

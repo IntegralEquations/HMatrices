@@ -161,9 +161,9 @@ function HMatrix{S,F,T}(resource::AbstractResource,K,block,comp) where {S,F,T}
     return hmat
 end
 
-function HMatrix{S,F,T}(block::BlockTree) where {S,F,T}
-    hmat = HMatrix{S,F,T}(rowrange(block),colrange(block),isadmissible(block),(),(),())
-    children = HMatrix{S,F,T}.(getchildren(block))
+function HMatrix{S,F,T}(blocktree) where {S,F,T}
+    hmat = HMatrix{S,F,T}(rowrange(blocktree),colrange(blocktree),isadmissible(blocktree),(),(),())
+    children = HMatrix{S,F,T}.(getchildren(blocktree))
     setchildren!(hmat,children)
     map(x->setparent!(x,hmat),children)
     return hmat
