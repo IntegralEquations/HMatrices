@@ -4,7 +4,7 @@
 function rmul!(R::RkMatrix,b::Number)
     m,n = size(R)
     if m>n
-        rmul!(R.B,b)
+        rmul!(R.B,conj(b))
     else
         rmul!(R.A,b)
     end
