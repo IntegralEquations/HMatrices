@@ -13,7 +13,8 @@ end
 (*)(a::Number,R::RkMatrix) = rmul!(deepcopy(R),a)
 (*)(R::RkMatrix,a::Number) = rmul!(deepcopy(R),a)
 
-function rmul!(H::HMatrix,b::Number)
+@inline function rmul!(H::HMatrix,b::Number)
+    b==true && (return H) # short circuit. If inlined, allows for compiler to optimize rmul!(H,true) to a nop
     if hasdata(H)
         rmul!(getdata(H),b)
     end

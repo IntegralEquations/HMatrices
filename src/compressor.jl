@@ -159,7 +159,7 @@ function compress!(R::RkMatrix,tsvd::TSVD)
     return R
 end
 
-function compress(H::HMatrix,tsvd::TSVD)
+function compress!(H::HMatrix,tsvd::TSVD)
     if isadmissible(H)
         return compress!(getdata(H),tsvd)
     else
