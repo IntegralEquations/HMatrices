@@ -39,13 +39,8 @@ end
 #3.3
 (+)(H::HMatrix,S::HMatrix) = axpby!(true,H,true,deepcopy(S))
 
-"""
-    axpby!(a,X,b,Y)
-"""
-
 (+)(X::UniformScaling,Y::HMatrix) = axpby!(true,X,true,deepcopy(Y))
 (+)(X::HMatrix,Y::UniformScaling) = Y+X
-
 
 #1.2
 axpby!(a,X::Matrix,b,Y::RkMatrix) = axpby!(a,RkMatrix(X),b,Y)
@@ -138,5 +133,35 @@ function axpby!(a,X::UniformScaling,b,Y::HMatrix)
             axpby!(a,X,true,getchildren(Y,i,i))
         end
     end
+    return Y
+end
+
+@inline function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix)
+    rmul!(Y,b)
+    if isleaf(Y)
+        Xblock = X[rowrange(Y),colrange(Y)] #extract sparse block
+        if !iszero(Xblock)
+            data = getdata(Y)
+            axpy!(a,Xblock,data)
+        end
+        return Y
+    else
+        for child in getchildren(Y)
+            axpby!(a,X,true,child)
+        end
+    end
+    return Y
+end
+axpy!(a,X::AbstractSparseArray,Y::HMatrix) = axpby!(a,X::AbstractSparseArray,true,Y::HMatrix)
+
+(+)(X::AbstractSparseArray{<:Any,<:Any,2},Y::HMatrix) = axpy!(true,X,deepcopy(Y))
+(+)(X::HMatrix,Y::AbstractSparseArray{<:Any,<:Any,2}) = Y+X
+
+function axpy!(a,X::AbstractSparseArray{<:Any,<:Any,2},Y::RkMatrix)
+    M = Matrix(Y)
+    axpy!(a,X,M)
+    R = RkMatrix(M)
+    Y.A = R.A
+    Y.B = R.B
     return Y
 end
