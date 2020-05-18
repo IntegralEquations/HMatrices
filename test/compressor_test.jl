@@ -53,17 +53,18 @@ using SafeTestsets
         @test new_norm ≈ _update_frob_norm(old_norm,R)
     end
     @testset "truncated svd" begin
-        # atol  = 1e-5
-        # tsvd  = TSVD(atol=atol)
-        # tmp   = compress(R,tsvd)
-        # @test norm(Matrix(R) - M) < atol
-        # rtol = 1e-5
-        # aca = PartialACA(rtol=rtol)
-        # R = aca(M,irange,jrange)
-        # @test norm(Matrix(R) - M) < rtol*norm(M)
-        # r = 10
-        # aca = PartialACA(rank=r)
-        # R = aca(M,irange,jrange)
-        # @test rank(R) == r
+        atol = 1e-5
+        tsvd    = TSVD(atol=atol)
+        tsvd(M)
+        tmp  = compress(M,tsvd)
+        @test norm(Matrix(tmp) - M) < atol
+        rtol = 1e-5
+        aca = PartialACA(rtol=rtol)
+        R = aca(M,irange,jrange)
+        @test norm(Matrix(R) - M) < rtol*norm(M)
+        r = 10
+        aca = PartialACA(rank=r)
+        R = aca(M,irange,jrange)
+        @test rank(R) == r
     end
 end
