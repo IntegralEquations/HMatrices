@@ -15,7 +15,8 @@ mutable struct HMatrix{S,F,T} <: AbstractHMatrix{T}
     end
 end
 
-HMatrix(args...;kwargs...) = HMatrix(CPU1(),args...;kwargs...)
+#default
+HMatrix(args...;kwargs...) = HMatrix(CPUThreads(),args...;kwargs...)
 
 function Base.getindex(H::AbstractHMatrix,i::Int,j::Int)
     @debug "using `getindex(H::AbstractHMatrix,i::Int,j::Int)`"
