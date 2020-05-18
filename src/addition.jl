@@ -16,9 +16,11 @@ described in the table below:
 
 #1.3
 (+)(M::Matrix,H::HMatrix)  = axpby!(true,M,true,deepcopy(H))
+(-)(M::Matrix,H::HMatrix)  = axpby!(-,M,true,deepcopy(H))
 
 #2.1
 (+)(R::RkMatrix,M::Matrix)  = (+)(M,R)
+(-)(R::RkMatrix,M::Matrix)  = (-)(M,R)
 
 #2.2
 function (+)(R::RkMatrix,S::RkMatrix)
@@ -26,31 +28,40 @@ function (+)(R::RkMatrix,S::RkMatrix)
     Bnew  = hcat(R.B,S.B)
     return RkMatrix(Anew,Bnew)
 end
+(-)(R::RkMatrix,S::RkMatrix) = (+)(R::RkMatrix,rmul!(S,-1))
 
 #2.3
 (+)(R::RkMatrix,H::HMatrix) = axpby!(true,R,true,deepcopy(H))
+(-)(R::RkMatrix,H::HMatrix) = axpby!(-1,R,true,deepcopy(H))
 
 #3.1
 (+)(H::HMatrix,M::Matrix) = (+)(M,H)
+(-)(H::HMatrix,M::Matrix) = (-)(M,H)
 
 #3.2
 (+)(H::HMatrix,R::RkMatrix) = (+)(R,H)
+(-)(H::HMatrix,R::RkMatrix) = (-)(R,H)
 
 #3.3
 (+)(H::HMatrix,S::HMatrix) = axpby!(true,H,true,deepcopy(S))
+(-)(H::HMatrix,S::HMatrix) = axpby!(-1,H,true,deepcopy(S))
 
-(+)(X::UniformScaling,Y::HMatrix) = axpby!(true,X,true,deepcopy(Y))
-(+)(X::HMatrix,Y::UniformScaling) = Y+X
+# Below we define the more general method axpby!, and then base the other addition operations on it
 
 #1.2
-axpby!(a,X::Matrix,b,Y::RkMatrix) = axpby!(a,RkMatrix(X),b,Y)
+axpby!(a,X::Matrix,b,Y::RkMatrix,compress=identity) = axpby!(a,RkMatrix(X),b,Y,compress)
 
 #1.3
-function axpby!(a,X::Matrix,b,Y::HMatrix)
+function axpby!(a,X::Matrix,b,Y::HMatrix,compress=identity)
     rmul!(Y,b)
     if hasdata(Y)
-        axpby!(a,X,true,getdata(Y))
+        if getdata(Y) isa Matrix
+            axpby!(a,X,true,getdata(Y))
+        else
+            axpby!(a,X,true,getdata(Y),compress)
+        end
     else
+        isleaf(Y) || warn("adding data to an internal node. This may not be what you intended. ")
         data = a*X
         setdata!(Y,data)
     end
@@ -58,27 +69,32 @@ function axpby!(a,X::Matrix,b,Y::HMatrix)
 end
 
 #2.1
-axpby!(a,X::RkMatrix,b,Y::Matrix) = axpby!(a,Matrix(X),b,Y)
+axpby!(a,X::RkMatrix,b,Y::Matrix,compress=identity) = axpby!(a,Matrix(X),b,Y,compress=identity)
 
 #2.2
-function axpby!(a,X::RkMatrix,b,Y::RkMatrix)
+function axpby!(a,X::RkMatrix,b,Y::RkMatrix,compress=identity)
     rmul!(Y,b)
     m,n = size(X)
     if m<n
-        Y.A   = hcat(a*X.A,Y.A)
-        Y.B   = hcat(X.B,Y.B)
+        Y.A   = hcat(a*X.A,Y.A) |> compress
+        Y.B   = hcat(X.B,Y.B)   |> compress
     else
-        Y.A   = hcat(X.A,Y.A)
-        Y.B   = hcat(a*X.B,Y.B)
+        Y.A   = hcat(X.A,Y.A)   |> compress
+        Y.B   = hcat(a*X.B,Y.B) |> compress
     end
     return Y
 end
 
 #2.3
-function axpby!(a,X::RkMatrix,b,Y::HMatrix)
+function axpby!(a,X::RkMatrix,b,Y::HMatrix,compress=identity)
     rmul!(Y,b)
     if hasdata(Y)
-        axpby!(a,X,true,getdata(Y))
+        data = getdata(Y)
+        if data isa Matrix
+            axpby!(a,X,true,getdata(Y))
+        else
+            axpby!(a,X,true,getdata(Y),compress)
+        end
     else
         data = a*X
         setdata!(Y,data)
@@ -101,18 +117,18 @@ function axpby!(a,X::HMatrix,b,Y::Matrix)
 end
 
 #3.2
-function axpby!(a,X::HMatrix,b,Y::RkMatrix)
+function axpby!(a,X::HMatrix,b,Y::RkMatrix,compress=identity)
     R = RkMatrix(X)
-    axpby!(a,R,b,Y)
+    axpby!(a,R,b,Y,compress)
 end
 
-function axpby!(a,X::HMatrix,b,Y::HMatrix)
+function axpby!(a,X::HMatrix,b,Y::HMatrix,compress)
     rmul!(Y,b)
     if hasdata(X)
-        axpby!(a,getdata(X),true,Y)
+        axpby!(a,getdata(X),true,Y,compress)
     end
     for (bx,by) in zip(getchildren(X),getchildren(Y))
-        axpby!(a,bx,true,by)
+        axpby!(a,bx,true,by,compress)
     end
     return Y
 end
@@ -165,3 +181,6 @@ function axpy!(a,X::AbstractSparseArray{<:Any,<:Any,2},Y::RkMatrix)
     Y.B = R.B
     return Y
 end
+
+(+)(X::UniformScaling,Y::HMatrix) = axpby!(true,X,true,deepcopy(Y))
+(+)(X::HMatrix,Y::UniformScaling) = Y+X
