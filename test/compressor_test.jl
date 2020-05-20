@@ -55,7 +55,6 @@ using SafeTestsets
     @testset "truncated svd" begin
         atol = 1e-5
         tsvd    = TSVD(atol=atol)
-        tsvd(M)
         tmp  = compress(M,tsvd)
         @test norm(Matrix(tmp) - M) < atol
         rtol = 1e-5

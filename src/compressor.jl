@@ -104,7 +104,7 @@ function _aca_partial(K,irange,jrange,atol,rmax,rtol)
             end
             pushcross!(R,a,b)
             er       = norm(a)*norm(b) # estimate the error by || R_{k} - R_{k-1} || = ||a|| ||b||
-            est_norm = _update_frob_norm(est_norm,R) # estimate the norm by || K || ≈ || R_k || 
+            est_norm = _update_frob_norm(est_norm,R) # estimate the norm by || K || ≈ || R_k ||
             i        = _nextrow(a,I)
         end
     end
@@ -142,40 +142,45 @@ _nextrow(row,I) = _nextcol(row,I)
 ## Truncated SVD
 ###############################################################################
 compress(R::RkMatrix,tsvd::TSVD) = compress!(deepcopy(R),tsvd)
-
 function compress!(R::RkMatrix,tsvd::TSVD)
     m,n = size(R)
     F   = svd!(R)
-    enorm = F.S[1]
     r = findlast(x -> x>max(tsvd.atol,tsvd.rtol*enorm), F.S)
     r = min(r,tsvd.rank)
     if m<n
-        R.A = F.U[:,1:r]*Diagonal(F.S[1:r])
+        R.A = @views F.U[:,1:r]*Diagonal(F.S[1:r])
         R.B = F.V[:,1:r]
     else
-        R.A = F.U[:,1:r]
-        R.B = F.Vt[:,1:r]*Diagonal(F.S[1:r])
+        A = F.U[:,1:r]
+        B = @views F.V[:,1:r]*adjoint(Diagonal(F.S[1:r]))
     end
     return R
 end
 
-function compress!(H::HMatrix,tsvd::TSVD)
-    if isadmissible(H)
-        return compress!(getdata(H),tsvd)
+compress(M::Matrix,tsvd::TSVD) = compress!(copy(M),tsvd)
+function compress!(M::Matrix,tsvd::TSVD)
+    F = svd!(M)
+    enorm = F.S[1]
+    r = findlast(x -> x>max(tsvd.atol,tsvd.rtol*enorm), F.S)
+    r = min(r,tsvd.rank)
+    m,n = size(M)
+    if m<n
+        A = @views F.U[:,1:r]*Diagonal(F.S[1:r])
+        B = F.V[:,1:r]
     else
-        blocks = [compress(child,tsvd) for child in getchildren(H)]
-        return compress(blocks,tsvd)
+        A = F.U[:,1:r]
+        B = @views F.V[:,1:r]*adjoint(Diagonal(F.S[1:r]))
     end
+    return RkMatrix(A,B)
 end
 
-# function compress(B::Matrix{<:RkMatrix},tsvd::TSVD)
-#     @assert size(B) == (2,2)
-#     tmp1 = compress(hcat(B[1,1],B[1,2]),tsvd)
-#     tmp2 = compress(hcat(B[2,1],B[2,2]),tsvd)
-#     tmp3 = compress(vcat(tmp1,tmp2),tsvd)
-#     return tmp3
-# end
-
-# function compress(H,paca::PartialACA)
-#     return paca(H)
-# end
+function compress!(H::HMatrix,tsvd::TSVD)
+    if isadmissible(H)
+        compress!(getdata(H),tsvd)
+    else
+        for child in getchildren(H)
+            compress(child,tsvd)
+        end
+    end
+    return H
+end
