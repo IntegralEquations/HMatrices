@@ -3,7 +3,7 @@ using SafeTestsets
 @safetestset "Compressor" begin
     using HMatrices
     using HMatrices: compress, ACA, PartialACA, TSVD
-    using LinearAlgebra: norm, Diagonal, rank
+    using LinearAlgebra: norm, Diagonal, rank, svd, svd!
     T = ComplexF64
     m,n,r = 100,100,100
     S = Diagonal(exp.(-(1:r)))
@@ -57,13 +57,8 @@ using SafeTestsets
         tsvd    = TSVD(atol=atol)
         tmp  = compress(M,tsvd)
         @test norm(Matrix(tmp) - M) < atol
-        rtol = 1e-5
-        aca = PartialACA(rtol=rtol)
+        aca = PartialACA(atol=atol)
         R = aca(M,irange,jrange)
-        @test norm(Matrix(R) - M) < rtol*norm(M)
-        r = 10
-        aca = PartialACA(rank=r)
-        R = aca(M,irange,jrange)
-        @test rank(R) == r
+        @test norm(compress(R,tsvd)-R) < atol
     end
 end

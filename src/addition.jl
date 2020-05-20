@@ -16,7 +16,7 @@ described in the table below:
 
 #1.3
 (+)(M::Matrix,H::HMatrix)  = axpby!(true,M,true,deepcopy(H))
-(-)(M::Matrix,H::HMatrix)  = axpby!(-,M,true,deepcopy(H))
+(-)(M::Matrix,H::HMatrix)  = axpby!(-1,M,true,deepcopy(H))
 
 #2.1
 (+)(R::RkMatrix,M::Matrix)  = (+)(M,R)
@@ -61,7 +61,7 @@ function axpby!(a,X::Matrix,b,Y::HMatrix,compress=identity)
             axpby!(a,X,true,getdata(Y),compress)
         end
     else
-        isleaf(Y) || warn("adding data to an internal node. This may not be what you intended. ")
+        isleaf(Y) || @debug "adding data to an internal node. This may not be what you intended. "
         data = a*X
         setdata!(Y,data)
     end
@@ -69,7 +69,7 @@ function axpby!(a,X::Matrix,b,Y::HMatrix,compress=identity)
 end
 
 #2.1
-axpby!(a,X::RkMatrix,b,Y::Matrix,compress=identity) = axpby!(a,Matrix(X),b,Y,compress=identity)
+axpby!(a,X::RkMatrix,b,Y::Matrix,compress=identity) = axpby!(a,Matrix(X),b,Y)
 
 #2.2
 function axpby!(a,X::RkMatrix,b,Y::RkMatrix,compress=identity)
@@ -122,7 +122,7 @@ function axpby!(a,X::HMatrix,b,Y::RkMatrix,compress=identity)
     axpby!(a,R,b,Y,compress)
 end
 
-function axpby!(a,X::HMatrix,b,Y::HMatrix,compress)
+function axpby!(a,X::HMatrix,b,Y::HMatrix,compress=identity)
     rmul!(Y,b)
     if hasdata(X)
         axpby!(a,getdata(X),true,Y,compress)

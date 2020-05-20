@@ -145,14 +145,15 @@ compress(R::RkMatrix,tsvd::TSVD) = compress!(deepcopy(R),tsvd)
 function compress!(R::RkMatrix,tsvd::TSVD)
     m,n = size(R)
     F   = svd!(R)
+    enorm = F.S[1]
     r = findlast(x -> x>max(tsvd.atol,tsvd.rtol*enorm), F.S)
     r = min(r,tsvd.rank)
     if m<n
-        R.A = @views F.U[:,1:r]*Diagonal(F.S[1:r])
+        R.A = F.U[:,1:r]*Diagonal(F.S[1:r])
         R.B = F.V[:,1:r]
     else
-        A = F.U[:,1:r]
-        B = @views F.V[:,1:r]*adjoint(Diagonal(F.S[1:r]))
+        R.A = F.U[:,1:r]
+        R.B = F.V[:,1:r]*adjoint(Diagonal(F.S[1:r]))
     end
     return R
 end
