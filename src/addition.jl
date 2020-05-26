@@ -152,18 +152,17 @@ function axpby!(a,X::UniformScaling,b,Y::HMatrix)
     return Y
 end
 
-@inline function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix)
-    rmul!(Y,b)
-    if isleaf(Y)
-        Xblock = X[rowrange(Y),colrange(Y)] #extract sparse block
-        if !iszero(Xblock)
+function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix)
+    b ==1 || rmul!(Y,b)
+    Xblock = view(X,rowrange(Y),colrange(Y)) #extract sparse block
+    if !iszero(Xblock)
+        if isleaf(Y)
             data = getdata(Y)
             axpy!(a,Xblock,data)
-        end
-        return Y
-    else
-        for child in getchildren(Y)
-            axpby!(a,X,true,child)
+        else
+            for child in getchildren(Y)
+                axpby!(a,X,true,child)
+            end
         end
     end
     return Y
@@ -174,6 +173,17 @@ axpy!(a,X::AbstractSparseArray,Y::HMatrix) = axpby!(a,X::AbstractSparseArray,tru
 (+)(X::HMatrix,Y::AbstractSparseArray{<:Any,<:Any,2}) = Y+X
 
 function axpy!(a,X::AbstractSparseArray{<:Any,<:Any,2},Y::RkMatrix)
+    @debug "Inneficient addition of sparse array to RkMatrix being performed..."
+    M = Matrix(Y)
+    axpy!(a,X,M)
+    R = RkMatrix(M)
+    Y.A = R.A
+    Y.B = R.B
+    return Y
+end
+
+function axpy!(a,X::SubArray{<:Any,2,<:SparseMatrixCSC},Y::RkMatrix)
+    @debug "Inneficient addition of sparse array to RkMatrix being performed..."
     M = Matrix(Y)
     axpy!(a,X,M)
     R = RkMatrix(M)

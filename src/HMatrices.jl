@@ -3,11 +3,11 @@ module HMatrices
 import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, inv!, lu, lu!, ldiv!, rdiv!, triu, tril
 import Base: +, -, *, inv, copy
 import AbstractTrees: children
-import SparseArrays: sparse, AbstractSparseArray
+import SparseArrays: sparse, SparseMatrixCSC
 
 using LinearAlgebra: Adjoint, UnitLowerTriangular, LowerTriangular, UnitUpperTriangular, UpperTriangular,
-                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot, UniformScaling
-using SparseArrays: SparseMatrixCSC
+                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot, UniformScaling, det
+using SparseArrays: SparseMatrixCSC, AbstractSparseArray
 using Base.Threads: @spawn
 using ComputationalResources: CPU1, CPUThreads, AbstractResource
 using AbstractTrees: TreeIterator, Leaves, PreOrderDFS
