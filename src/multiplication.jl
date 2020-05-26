@@ -14,7 +14,7 @@ end
 (*)(R::RkMatrix,a::Number) = rmul!(deepcopy(R),a)
 
 @inline function rmul!(H::HMatrix,b::Number)
-    b==true && (return H) # short circuit. If inlined, allows for compiler to optimize rmul!(H,true) to a nop
+    b==true && (return H) # short circuit. If inlined, allows for compiler to optimize rmul!(H,true) to a no-op
     if hasdata(H)
         rmul!(getdata(H),b)
     end
@@ -96,7 +96,7 @@ function mul!(resources::CPUThreads,C::AbstractVector,H::AbstractHMatrix,F::Abst
 end
 
 # default
-mul!(C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPU1(),C,H,F,a,b)
+mul!(C::AbstractVector,H::AbstractHMatrix,F::AbstractVector,a::Number,b::Number) = mul!(CPUThreads(),C,H,F,a,b)
 
 function _multiply_leaf!(C::AbstractVector,H,F::AbstractVector,a,b)
     irange = rowrange(H)
@@ -183,7 +183,6 @@ end
 ## 1.1.2
 ################################################################################
 function mul!(C::AbstractMatrix,M::AbstractMatrix,R::AbstractRkMatrix,a::Number,b::Number,buffer=similar(C,size(M,1),rank(R)))
-    @debug "1.1.2"
     mul!(buffer,M,R.A)
     mul!(C,buffer,R.Bt,a,b)
     return C
@@ -193,7 +192,6 @@ end
 ## 1.1.3
 ################################################################################x
 function mul!(C::AbstractMatrix,M::AbstractMatrix,H::AbstractHMatrix,a::Number,b::Number)
-    @debug "1.1.3"
     rmul!(C,b)
     if hasdata(H)
         data = getdata(H)
@@ -224,7 +222,6 @@ end
 ## 1.2.1
 ################################################################################
 function mul!(C::AbstractMatrix,R::AbstractRkMatrix,M::AbstractMatrix,a::Number,b::Number)
-    @debug "1.2.1"
     buffer = similar(C,rank(R),size(M,2))
     mul!(buffer,R.Bt,M)
     mul!(C,R.A,buffer,a,b)
@@ -240,7 +237,6 @@ end
 ## 1.2.2
 ################################################################################
 function mul!(C::AbstractMatrix,R::AbstractRkMatrix,S::AbstractRkMatrix,a::Number,b::Number)
-    @debug "1.2.2"
     tmp = R*S
     mul!(C,tmp.A,tmp.Bt,a,b)
     return C
@@ -250,7 +246,6 @@ end
 ## 1.2.3
 ################################################################################
 function mul!(C::AbstractMatrix,R::AbstractRkMatrix,H::AbstractHMatrix,a::Number,b::Number)
-    @debug "1.2.3"
     tmp = R*H
     mul!(C,tmp.A,tmp.Bt,a,b)
     return C
@@ -260,7 +255,6 @@ end
 ## 1.3.1
 ################################################################################
 function mul!(C::AbstractMatrix,H::AbstractHMatrix,M::AbstractMatrix,a::Number,b::Number)
-    @debug "1.3.1"
     rmul!(C,b)
     if hasdata(H)
         data = getdata(H)
@@ -289,7 +283,6 @@ end
 end
 
 function mul!(C::AbstractMatrix,adjH::Adjoint{<:Any,<:AbstractHMatrix},M::AbstractMatrix,a::Number,b::Number)
-    @debug "1.3t.1"
     rmul!(C,b)
     if hasdata(adjH)
         data = getdata(adjH)
@@ -320,7 +313,6 @@ end
 ## 1.3.2
 ################################################################################
 function mul!(C::AbstractMatrix,H::AbstractHMatrix,R::AbstractRkMatrix,a::Number,b::Number)
-    @debug "1.3.2"
     buffer=similar(C,size(H,1),rank(R))
     mul!(buffer,H,R.A)
     mul!(C,buffer,R.Bt,a,b)
@@ -352,7 +344,6 @@ end
 ## 2.1.2
 ################################################################################
 function mul!(C::AbstractRkMatrix,M::AbstractMatrix,R::AbstractRkMatrix,a::Number,b::Number)
-    @debug "2.1.2"
     tmp = M*R
     axpby!(a,tmp,b,C)
     return C
@@ -373,7 +364,6 @@ end
 ## 2.2.1
 ################################################################################
 function mul!(C::AbstractRkMatrix,R::AbstractRkMatrix,M::AbstractMatrix,a::Number,b::Number)
-    @debug "2.2.1"
     tmp = R*M
     axpby!(a,tmp,b,C)
     return C
@@ -423,10 +413,9 @@ end
 ## 2.3.3
 ################################################################################
 function mul!(C::AbstractRkMatrix,A::AbstractHMatrix,B::AbstractHMatrix,a::Number,b::Number)
-    @debug "2.3.3"
     # tp = TwoProd(A,B)
     # tmp = compress(tp,PartialACA(atol=1e-6))
-    # R = 
+    # R =
     # return axpby!(a,tmp,b,C)
     rmul!(C,b)
     if !isleaf(A) && !isleaf(B)
@@ -458,7 +447,6 @@ end
 ## 3.1.1
 ################################################################################
 function mul!(C::AbstractHMatrix,M::AbstractMatrix,F::AbstractMatrix,a::Number,b::Number)
-    @debug "3.1.1: should not arise"
     tmp = M*F
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -501,7 +489,6 @@ end
 ## 3.2.1
 ################################################################################
 function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,M::AbstractMatrix,a::Number,b::Number)
-    @debug "3.2.1"
     tmp = R*M
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -516,7 +503,6 @@ end
 ## 3.2.2
 ################################################################################
 function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,M::AbstractRkMatrix,a::Number,b::Number)
-    @debug "3.2.2"
     tmp = R*M
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -531,7 +517,6 @@ end
 ## 3.2.3
 ################################################################################
 function mul!(C::AbstractHMatrix,R::AbstractRkMatrix,H::AbstractHMatrix,a::Number,b::Number)
-    @debug "3.2.3"
     tmp = R*H
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
@@ -561,7 +546,6 @@ end
 ## 3.3.2
 ################################################################################
 function mul!(C::AbstractHMatrix,H::AbstractHMatrix,R::AbstractRkMatrix,a::Number,b::Number)
-    @debug "3.3.2"
     tmp = H*R
     if hasdata(C)
         axpby!(a,tmp,b,C.data)
