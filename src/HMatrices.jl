@@ -6,8 +6,8 @@ import AbstractTrees: children
 import SparseArrays: sparse, SparseMatrixCSC
 
 using LinearAlgebra: Adjoint, UnitLowerTriangular, LowerTriangular, UnitUpperTriangular, UpperTriangular,
-                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot, UniformScaling, det
-using SparseArrays: SparseMatrixCSC, AbstractSparseArray
+                     I, SVD, qr, qr!, adjoint!, LU, full!, Diagonal, dot, UniformScaling, det, diag
+using SparseArrays: SparseMatrixCSC, AbstractSparseArray, rowvals, nonzeros, nzrange
 using Base.Threads: @spawn
 using ComputationalResources: CPU1, CPUThreads, AbstractResource
 using AbstractTrees: TreeIterator, Leaves, PreOrderDFS

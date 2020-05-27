@@ -50,6 +50,7 @@ end
 
 #1.2
 axpby!(a,X::Matrix,b,Y::RkMatrix,compress=identity) = axpby!(a,RkMatrix(X),b,Y,compress)
+axpy!(a,X::Matrix,Y::RkMatrix,compress=identity) = axpby!(a,X,true,Y,compress)
 
 #1.3
 function axpby!(a,X::Matrix,b,Y::HMatrix,compress=identity)
@@ -152,17 +153,49 @@ function axpby!(a,X::UniformScaling,b,Y::HMatrix)
     return Y
 end
 
-function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix)
+# function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix,compress=identity)
+#     b ==1 || rmul!(Y,b)
+#     # Xblock = uview(X,rowrange(Y),colrange(Y)) #extract sparse block
+#     Xblock   = X[rowrange(Y),colrange(Y)] #extract sparse block
+#     if !iszero(Xblock)
+#         if isleaf(Y)
+#             data = getdata(Y)
+#             axpy!(a,Xblock,data)
+#             #TODO: instead of converting sparse --> full to do the addition,
+#             #iterated over the nonzero entries of sparse and add it in place?
+#         else
+#             for child in getchildren(Y)
+#                 axpby!(a,X,true,child)
+#             end
+#         end
+#     end
+#     return Y
+# end
+function axpby!(a,X::AbstractSparseArray{<:Any,<:Any,2},b,Y::HMatrix,compress=identity)
     b ==1 || rmul!(Y,b)
-    Xblock = view(X,rowrange(Y),colrange(Y)) #extract sparse block
-    if !iszero(Xblock)
-        if isleaf(Y)
-            data = getdata(Y)
-            axpy!(a,Xblock,data)
-        else
-            for child in getchildren(Y)
-                axpby!(a,X,true,child)
+    # Xblock = uview(X,rowrange(Y),colrange(Y)) #extract sparse block
+    if isleaf(Y)
+        rows = rowvals(X)
+        vals = nonzeros(X)
+        irange = rowrange(Y)
+        jrange = colrange(Y)
+        for j in jrange
+            for idx in nzrange(X,j)
+                i = rows[idx]
+                if i < irange.start
+                    continue
+                elseif i <= irange.stop # i ∈ irange
+                    @assert getdata(Y) isa Matrix
+                    data = getdata(Y)::Matrix{eltype(Y)} #
+                    data[i-irange.start+1,j-jrange.start+1] += a*vals[idx]
+                else
+                    break # go to next column
+                end
             end
+        end
+    else # has children
+        for child in getchildren(Y)
+            axpby!(a,X,true,child)
         end
     end
     return Y
