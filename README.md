@@ -1,8 +1,9 @@
 # HMatrices.jl
 
-![Lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
+*A package for assembling and doing algebra with hierarchical matrices with a focus on boundary integral equations* 
+
+![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 ![CI](https://github.com/IntegralEquations/HMatrices/workflows/CI/badge.svg?branch=master)
-[![codecov.io](http://codecov.io/github/IntegralEquations/HMatrices.jl/coverage.svg?branch=master)](http://codecov.io/github/IntegralEquations/HMatrices.jl?branch=master)
 
 ## Installation
 Install from the Pkg REPL:
