@@ -11,7 +11,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[Clusters]]
 deps = ["AbstractTrees", "GeometryTypes", "LinearAlgebra", "RecipesBase", "Statistics"]
-path = "/home/lfaria/projects/IntegralEquations/Clusters/"
+git-tree-sha1 = "195e157a023927452b3c069a84f9177cf85cb82c"
+repo-rev = "master"
+repo-url = "https://github.com/IntegralEquations/Clusters"
 uuid = "1a0635d8-fcb2-4b4a-a3f6-88094c56b95c"
 version = "0.1.0"
 
