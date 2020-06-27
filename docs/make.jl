@@ -1,11 +1,11 @@
 push!(LOAD_PATH,joinpath(@__DIR__, ".."))
-using Documenter, HierarchicalMatrices
+using Documenter, HMatrices
 
 makedocs(
-    modules = [HierarchicalMatrices],
+    modules = [HMatrices],
     format = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
     authors = "Luiz M. Faria",
-    sitename = "HierarchicalMatrices.jl",
+    sitename = "HMatrices.jl",
     pages = Any["Home" => "index.md"
                 "Modules" => "modules.md" ]
     # strict = true,
@@ -14,9 +14,9 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/maltezfaria/HierarchicalMatrices.jl.git",## Geometry
+    repo = "github.com/maltezfaria/HMatrices.jl.git",## Geometry
 ```@autodocs
-Modules = [HierarchicalMatrices.Geometry]
+Modules = [HMatrices.Geometry]
 Order   = [:module, :function, :type]
 ```
 )
