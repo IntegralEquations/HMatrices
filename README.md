@@ -37,4 +37,4 @@ Often one cannot assemble the full matrix. In this case the `LazyMatrix` type is
 ```
 This is just like the matrix we build `M`, but it computes the entries *on demand* and does not store them. To see the data sparse structure of the hierarchical matrix the package includes a `Plots` recipe so that you can do `plot(H)` to see something like the following image:
 
-![HMatrix](docs/src/figures/hmatrix.png "HMatrix")
+![HMatrix](docs/figures/hmatrix.png "HMatrix")
