@@ -3,12 +3,12 @@
 *A package for assembling and doing algebra with hierarchical matrices with a focus on boundary integral equations* 
 
 ![Lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
-![CI](https://github.com/IntegralEquations/HMatrices/workflows/CI/badge.svg?branch=master)
+![CI](https://github.com/maltezfaria/HMatrices/workflows/CI/badge.svg?branch=master)
 
 ## Installation
 Install from the Pkg REPL:
 ```
-pkg> add https://github.com/IntegralEquations/HMatrices
+pkg> add https://github.com/maltezfaria/HMatrices
 ```
 ## Basic usage
 
