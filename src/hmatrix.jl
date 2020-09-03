@@ -130,6 +130,51 @@ function Base.show(io::IO,hmat::AbstractHMatrix)
     print(io,"hmatrix with range ($(rowrange(hmat))) × ($(colrange(hmat)))")
 end
 
+function LinearAlgebra.diag(H::AbstractHMatrix{T}) where {T}
+    m,n = size(H)
+    @assert m == n "matrix must be square"
+    @assert pivot(H) == (1,1) "matrix must be indexed from (1,1)"
+    d = Vector{T}(undef,m)
+    _diag!(d,H)
+end
+
+function _diag!(d,H)
+    @assert rowrange(H) == colrange(H)
+    if isleaf(H)
+        d[rowrange(H)] = diag(getdata(H))
+    else
+        for children in diag(getchildren(H))
+            _diag!(d,children)
+        end
+    end
+    return d
+end
+
+LinearAlgebra.Diagonal(H::AbstractHMatrix) = Diagonal(diag(H))
+
+function block_diag(H::AbstractHMatrix{T}) where {T}
+    m,n = size(H)
+    @assert m == n "matrix must be square"
+    @assert pivot(H) == (1,1) "matrix must be indexed from (1,1)"
+    nblocks = 
+    d = Vector{Matrix{T}}()
+    _block_diag!(d,H)
+end
+
+function _block_diag!(d,H)
+    @assert rowrange(H) == colrange(H)
+    if isleaf(H)
+        push!(d,getdata(H))
+    else
+        for children in diag(getchildren(H))
+            _block_diag!(d,children)
+        end
+    end
+    return d
+end
+
+BlockDiagonal(H::AbstractHMatrix) = BlockDiagonal(block_diag(H))
+
 """
     HMatrix([resource=CPU1()],K,blocktree,comp)
 

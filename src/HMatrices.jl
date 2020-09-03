@@ -1,6 +1,8 @@
 module HMatrices
 
-import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, inv!, lu, lu!, ldiv!, rdiv!, triu, tril
+import LinearAlgebra: rank, mul!, svd, svd!, norm, axpby!, axpy!, rmul!, lmul!, inv!,
+                      lu, lu!, ldiv!, rdiv!, triu, tril, diag, adjoint, transpose, inv, tr, det
+import LinearAlgebra
 import Base: +, -, *, inv, copy
 import AbstractTrees: children
 import SparseArrays: sparse, SparseMatrixCSC
@@ -13,7 +15,6 @@ using ComputationalResources: CPU1, CPUThreads, AbstractResource
 using AbstractTrees: TreeIterator, Leaves, PreOrderDFS
 using RecipesBase: @series, @recipe
 using RecipesBase
-using UnsafeArrays: uview
 
 export
     # Types
@@ -29,6 +30,7 @@ include("interface.jl")
 include("utils.jl")
 include("lazymatrix.jl")
 include("flexmatrix.jl")
+include("blockdiagonal.jl")
 include("rkmatrix.jl")
 include("hmatrix.jl")
 include("conversion.jl")
@@ -36,6 +38,7 @@ include("adjoint.jl")
 include("svd.jl")
 include("norm.jl")
 include("compressor.jl")
+include("preconditioner.jl")
 include("addition.jl")
 include("multiplication.jl")
 include("inverse.jl")

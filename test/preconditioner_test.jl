@@ -1,7 +1,7 @@
 using Test
 using SafeTestsets
 
-@safetestset "HMatrix" begin
+@safetestset "Preconditioners" begin
     using HMatrices
     using Clusters
     using HMatrices: ACA, PartialACA
@@ -15,17 +15,17 @@ using SafeTestsets
     bclt = Clusters.BlockTree(clt,clt,adm)
     f(x,y)::ComplexF64 = x==y ? sum(x.+y) : exp(im*LinearAlgebra.norm(x.-y))/LinearAlgebra.norm(x.-y)
     M    = LazyMatrix(f,data,data)
-    comp = HMatrices.ACA(rtol=1e-6)
-    @testset "Assembly CPU1" begin
-        H    = HMatrix(CPU1(),M,bclt,comp)
-        @test diag(H) == diag(M)
-        @test Diagonal(H) == Diagonal(M)
-        @test norm(Matrix(H)-M,2) < comp.rtol*norm(M)
+    comp = HMatrices.PartialACA(rtol=1e-6)
+    H    = HMatrix(M,bclt,comp)
+    @testset "Diagonal" begin
+        using HMatrices: DiagonalPreconditioner
+        P = DiagonalPreconditioner(H)
+        @test P.matrix  == Diagonal(M)
+        @test P.inverse == inv(Diagonal(M))
     end
-    @testset "Assembly CPUThreads" begin
-        H    = HMatrix(CPUThreads(),M,bclt,comp)
-        @test diag(H) == diag(M)
-        @test Diagonal(H) == Diagonal(M)
-        @test norm(Matrix(H)-M,2) < comp.rtol*norm(M)
+    @testset "Block diagonal" begin
+        using HMatrices: block_diag, BlockDiagonalPreconditioner
+        P  = BlockDiagonalPreconditioner(H);
+        x  = rand(ComplexF64,size(P,2))
     end
 end
