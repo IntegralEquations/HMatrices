@@ -13,7 +13,7 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 deps = ["AbstractTrees", "GeometryTypes", "LinearAlgebra", "RecipesBase", "Statistics"]
 git-tree-sha1 = "49e6f9e19cf61232074ed4deb9d56cded33cc724"
 repo-rev = "master"
-repo-url = "git@github.com:maltezfaria/Clusters.git"
+repo-url = "https://github.com/maltezfaria/Clusters.git"
 uuid = "1a0635d8-fcb2-4b4a-a3f6-88094c56b95c"
 version = "0.1.0"
 
